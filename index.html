@@ -36,7 +36,7 @@
                         'float': 'float 6s ease-in-out infinite',
                         'scan': 'scan 1.5s linear infinite',
                         'grow': 'growWidth 2s ease-out forwards',
-                        'dance': 'dance 1s ease-in-out infinite', // Nueva animación
+                        'dance': 'dance 1s ease-in-out infinite',
                     },
                     keyframes: {
                         blob: {
@@ -58,7 +58,6 @@
                             '0%': { width: '0%' },
                             '100%': { width: 'var(--target-width)' },
                         },
-                        // KEYFRAME DEL BAILE
                         dance: {
                             '0%, 100%': { transform: 'rotate(-10deg) translateY(0)' },
                             '50%': { transform: 'rotate(10deg) translateY(-4px)' },
@@ -207,7 +206,7 @@
     <section class="relative pt-36 pb-20 px-6 max-w-7xl mx-auto min-h-[90vh] flex flex-col justify-center">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
             <div class="reveal">
-                <!-- CAMBIO: EMOJIS BAILANDO AQUÍ -->
+                
                 <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-6 hover:bg-primary/20 transition-colors cursor-default shadow-[0_0_15px_rgba(225,0,152,0.3)]">
                     <div class="flex items-center gap-1">
                         <span class="text-xl animate-dance">🏺</span>
@@ -236,7 +235,8 @@
                     <div class="border-l-4 border-primary pl-4">
                         <h3 class="text-white font-bold text-lg mb-2">📜 Contexto</h3>
                         <p class="text-slate-300 text-sm leading-relaxed">
-                            Cada 6 meses, el equipo de investigación pronostica las tendencias del mercado usando reportes futuristas. Para la temporada <strong>FW25</strong>, las direcciones definidas fueron: <strong>Ancestral</strong> y <strong>Esencial</strong>.
+                            <!-- CAMBIO 1: Tendencias en lugar de direcciones -->
+                            Cada 6 meses, el equipo de investigación pronostica las tendencias del mercado usando reportes futuristas. Para la temporada <strong>FW25</strong>, las tendencias definidas fueron <strong>Ancestral</strong> y <strong>Esencial para la dirección de Hogar</strong> .
                         </p>
                     </div>
                     <div class="border-l-4 border-purple-500 pl-4">
@@ -261,7 +261,8 @@
                     <h3 class="text-2xl font-bold">Objetivo Principal</h3>
                 </div>
                 <p class="text-slate-300 text-lg leading-relaxed border-l-4 border-primary/50 pl-6">
-                    Automatizar la asignación de tendencias y unificar atributos mediante la combinación de <strong>Diccionario  e Inteligencia Artificial</strong>, garantizando precisión y consistencia en la clasificación.
+                    <!-- CAMBIO 2: Python y Modelo entrenado -->
+                    Automatizar la asignación de tendencias y unificar atributos mediante <strong>Inteligencia Artificial</strong>, garantizando precisión y consistencia en la clasificación.
                 </p>
             </div>
         </div>
@@ -308,11 +309,12 @@
                 <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-white/5 -translate-y-1/2 z-0"></div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10" id="pipeline-container">
                     
-                    <!-- Step 1: Scraping -->
+                    <!-- Step 1: Extracción de datos (Antes Scraping) -->
                     <div id="step-1" class="glass-panel p-6 rounded-2xl relative group reveal transition-all duration-500 border-l-4 border-l-transparent">
                         <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">01</div>
                         <div class="step-icon w-12 h-12 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl mb-4">🕸️</div>
-                        <h3 class="text-lg font-bold mb-1">Scraping</h3>
+                        <!-- CAMBIO 3: Extracción de datos -->
+                        <h3 class="text-lg font-bold mb-1">Extracción de datos</h3>
                         <p class="text-slate-400 text-xs mb-3">Extracción de atributos.</p>
                         <div class="step-visual bg-slate-900/90 p-3 rounded-lg font-mono text-[10px] leading-relaxed border border-white/10 h-24 flex flex-col justify-center shadow-inner relative overflow-hidden">
                             <p class="text-slate-500 italic mb-1 text-[8px]">// Extracted Data</p>
@@ -333,7 +335,8 @@
                         <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">02</div>
                         <div class="step-icon w-12 h-12 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl mb-4">🌳</div>
                         <h3 class="text-lg font-bold mb-1">Normalización</h3>
-                        <p class="text-slate-400 text-xs mb-3">Diccionario de Árbol.</p>
+                        <!-- CAMBIO 4: Listado de atributos -->
+                        <p class="text-slate-400 text-xs mb-3">Listado de atributos.</p>
                         <div class="step-visual h-20 flex flex-col justify-center gap-2 text-[10px]">
                             <div class="flex justify-between items-center bg-white/5 p-1 rounded px-2"><span class="text-slate-400">"Envejecido"</span><span class="text-blue-400 animate-pulse">→</span><span class="text-primary font-bold">Ancestral</span></div>
                             <div class="flex justify-between items-center bg-white/5 p-1 rounded px-2"><span class="text-slate-400">"Rojo Mate"</span><span class="text-blue-400 animate-pulse">→</span><span class="text-secondary font-bold">Esencial</span></div>
@@ -389,7 +392,8 @@
                     <div class="space-y-4">
                         <h4 class="font-bold text-white border-b border-white/10 pb-2">Datos</h4>
                         <div class="bg-white/5 p-4 rounded-lg">
-                            <strong class="text-orange-400 block mb-1">Ambigüedad Semántica</strong>
+                            <!-- CAMBIO 5: Diferencia de palabras -->
+                            <strong class="text-orange-400 block mb-1">Diferencia de palabras</strong>
                             <p class="text-slate-400 text-sm">Inconsistencia en nombres de materiales y colores entre competidores (ej. "Rojo" vs "Carmín").</p>
                         </div>
                     </div>
@@ -411,8 +415,7 @@
             <div class="text-center mb-12 reveal">
                 <h2 class="text-3xl md:text-4xl font-display font-bold mb-4">Laboratorio de Tendencias</h2>
                 <p class="text-slate-400">Prueba el diccionario interactivo o analiza imágenes</p>
-                    <p class="text-slate-400">Prueba con JARRONES</p>
-
+                <p class="text-slate-400 mt-2">Prueba con JARRONES</p>
             </div>
             <div class="flex justify-center gap-4 mb-10 reveal">
                 <button onclick="switchTab('lab')" id="btn-lab" class="px-6 py-2 rounded-full bg-white text-slate-900 font-bold shadow-lg transition-all">Simulador de Reglas</button>
@@ -526,13 +529,27 @@
     </div>
 
     <script>
+        // SOLUCIÓN AL PROBLEMA DE SCROLL:
+        // 1. Deshabilitar la restauración automática del scroll del navegador
+        if (history.scrollRestoration) {
+            history.scrollRestoration = 'manual';
+        }
+        // 2. Forzar el scroll arriba inmediatamente
+        window.scrollTo(0, 0);
+
         // Intro cleanup script
+        // 3. Bloquear el scroll del body mientras la intro está activa para evitar bajar accidentalmente
+        document.body.style.overflowY = 'hidden';
+
         setTimeout(() => {
             const intro = document.getElementById('intro-overlay');
             if(intro) {
                 intro.style.display = 'none';
+                // 4. Reactivar scroll y asegurar posición arriba al terminar intro
+                document.body.style.overflowY = 'auto';
+                window.scrollTo(0, 0);
             }
-        }, 4500); // Remove from DOM shortly after animation ends
+        }, 4500); 
 
         function reveal() { var reveals = document.querySelectorAll(".reveal"); for (var i = 0; i < reveals.length; i++) { if (reveals[i].getBoundingClientRect().top < window.innerHeight - 100) reveals[i].classList.add("active"); } }
         window.addEventListener("scroll", reveal); reveal();
