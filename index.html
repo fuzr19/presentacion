@@ -36,6 +36,7 @@
                         'float': 'float 6s ease-in-out infinite',
                         'scan': 'scan 1.5s linear infinite',
                         'grow': 'growWidth 2s ease-out forwards',
+                        'dance': 'dance 1s ease-in-out infinite', // Nueva animación
                     },
                     keyframes: {
                         blob: {
@@ -56,6 +57,11 @@
                         growWidth: {
                             '0%': { width: '0%' },
                             '100%': { width: 'var(--target-width)' },
+                        },
+                        // KEYFRAME DEL BAILE
+                        dance: {
+                            '0%, 100%': { transform: 'rotate(-10deg) translateY(0)' },
+                            '50%': { transform: 'rotate(10deg) translateY(-4px)' },
                         }
                     }
                 }
@@ -100,15 +106,74 @@
             border-color: #e10098 !important; background: rgba(225, 0, 152, 0.1) !important;
             transform: scale(1.05) !important; box-shadow: 0 0 40px rgba(225, 0, 152, 0.2) !important; z-index: 10;
         }
-        .progress-bar { width: 0%; height: 2px; background: #e10098; transition: width 3s linear; }
+        .progress-bar { width: 0%; height: 2px; background: #e10098; transition: width 5s linear; }
         .step-active .progress-bar { width: 100%; }
         .step-visual { display: none; opacity: 0; transition: opacity 0.3s ease; margin-top: 1rem; }
         .step-active .step-visual { display: block; opacity: 1; }
         .step-active .step-icon { display: none; }
-        .typewriter p { overflow: hidden; white-space: nowrap; animation: typing 2s steps(20, end); }
+
+        /* Intro Animation */
+        #intro-overlay {
+            position: fixed; inset: 0; background: #0f0518; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            animation: slideUp 0.8s ease-in-out 3.5s forwards;
+        }
+        .emoji-stage {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 6rem; opacity: 0; display: flex; gap: 1rem; align-items: center;
+        }
+        #stage-1 { animation: showHide1 1.2s ease-in-out forwards; }
+        .shake-emoji { animation: shake 0.5s infinite; }
+        #stage-2 { animation: showHide2 1.2s ease-in-out 1.2s forwards; }
+        #stage-3 { animation: showFinal 1.2s ease-in-out 2.4s forwards; }
+
+        @keyframes slideUp { to { transform: translateY(-100%); } }
+        
+        @keyframes showHide1 {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+        @keyframes showHide2 {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+        }
+        @keyframes showFinal {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-primary selection:text-white">
+
+    <!-- INTRO ANIMATION LAYER -->
+    <div id="intro-overlay">
+        <!-- Act 1 -->
+        <div id="stage-1" class="emoji-stage">
+            <span class="shake-emoji">📑</span>
+            <span class="shake-emoji" style="animation-delay: 0.1s">😵‍💫</span>
+        </div>
+        <!-- Act 2 -->
+        <div id="stage-2" class="emoji-stage">
+            <span class="animate-pulse">🤖</span>
+            <span class="text-yellow-400">⚡</span>
+        </div>
+        <!-- Act 3 -->
+        <div id="stage-3" class="emoji-stage">
+            <span class="animate-bounce" style="animation-delay: 0.1s">🏺</span>
+            <span class="animate-bounce" style="animation-delay: 0.2s">✨</span>
+        </div>
+    </div>
 
     <div class="mesh-bg">
         <div class="mesh-blob bg-primary w-[500px] h-[500px] top-[-100px] left-[-100px] opacity-30"></div>
@@ -131,6 +196,7 @@
                 <a href="#contexto" class="hover:text-primary transition-colors">Estrategia</a>
                 <a href="#tendencias" class="hover:text-primary transition-colors">Perfiles</a>
                 <a href="#arquitectura" class="hover:text-primary transition-colors">Proceso</a>
+                <a href="#retos" class="hover:text-primary transition-colors">Desafíos</a>
                 <a href="#demo" class="hover:text-primary transition-colors">Lab</a>
                 <a href="#resultados" class="px-5 py-2 rounded-full border border-primary/30 bg-primary/10 hover:bg-primary hover:text-white transition-all text-primary font-semibold">Resultados</a>
             </div>
@@ -141,12 +207,18 @@
     <section class="relative pt-36 pb-20 px-6 max-w-7xl mx-auto min-h-[90vh] flex flex-col justify-center">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
             <div class="reveal">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-6">
-                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Temporada FW25
+                <!-- CAMBIO: EMOJIS BAILANDO AQUÍ -->
+                <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-6 hover:bg-primary/20 transition-colors cursor-default shadow-[0_0_15px_rgba(225,0,152,0.3)]">
+                    <div class="flex items-center gap-1">
+                        <span class="text-xl animate-dance">🏺</span>
+                        <span class="text-xl animate-dance" style="animation-delay: 0.3s">✨</span>
+                    </div>
+                    <span>Temporada FW25</span>
                 </div>
+
                 <h1 class="font-display text-5xl lg:text-7xl font-bold leading-tight mb-6 text-white">
-                    Clasificación <br/>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-secondary">Inteligente</span>
+                    Clasificador <br/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-secondary">Automatizado</span>
                 </h1>
                 <p class="text-slate-300 text-lg leading-relaxed max-w-lg mb-8">
                     Automatización del proceso de asignación de tendencias de Hogar, unificando criterios y eliminando la subjetividad manual.
@@ -170,7 +242,7 @@
                     <div class="border-l-4 border-purple-500 pl-4">
                         <h3 class="text-white font-bold text-lg mb-2">⚠️ El Problema</h3>
                         <p class="text-slate-300 text-sm leading-relaxed">
-                            La clasificación de miles de productos de competencia era <strong>manual, subjetiva y lenta</strong>. Las discrepancias en nombres de materiales y colores hacían imposible un análisis comparativo ágil.
+                            La clasificación de miles de productos de competencia era <strong>manual, subjetiva y lenta</strong>. Las discrepancias en nombres de materiales y colores hacían complicado un análisis comparativo ágil.
                         </p>
                     </div>
                 </div>
@@ -180,32 +252,17 @@
 
     <!-- CONTEXTO ESTRATÉGICO -->
     <section id="contexto" class="py-20 px-6">
-        <div class="max-w-7xl mx-auto">
+        <div class="max-w-4xl mx-auto">
             <h2 class="text-3xl md:text-4xl font-display font-bold mb-12 text-center reveal">Estrategia del Proyecto</h2>
             
-            <div class="grid md:grid-cols-2 gap-6 items-stretch">
-                <!-- Objetivo -->
-                <div class="glass-panel p-8 rounded-2xl reveal hover:bg-primary/5 transition-colors h-full flex flex-col justify-center">
-                    <div class="flex items-center gap-3 mb-6">
-                        <span class="p-2 rounded-lg bg-primary/20 text-primary text-xl">🎯</span>
-                        <h3 class="text-2xl font-bold">Objetivo Principal</h3>
-                    </div>
-                    <p class="text-slate-300 text-lg leading-relaxed border-l-2 border-primary/50 pl-4">
-                        Automatizar la asignación de tendencias y unificar atributos mediante la combinación estratégica de <strong>Reglas de Negocio e Inteligencia Artificial</strong>, garantizando precisión y consistencia.
-                    </p>
+            <div class="glass-panel p-10 rounded-2xl reveal hover:bg-primary/5 transition-colors">
+                <div class="flex items-center gap-4 mb-6 justify-center md:justify-start">
+                    <span class="p-3 rounded-lg bg-primary/20 text-primary text-2xl">🎯</span>
+                    <h3 class="text-2xl font-bold">Objetivo Principal</h3>
                 </div>
-
-                <!-- Retos -->
-                <div class="glass-panel p-8 rounded-2xl reveal delay-100 hover:bg-white/5 transition-colors h-full flex flex-col justify-center">
-                    <div class="flex items-center gap-3 mb-6">
-                        <span class="p-2 rounded-lg bg-orange-500/20 text-orange-400 text-xl">🚧</span>
-                        <h3 class="text-2xl font-bold">Retos Técnicos</h3>
-                    </div>
-                    <div class="space-y-4 text-slate-300">
-                        <p class="text-sm border-l-2 border-orange-500/50 pl-3"><strong class="text-white">Ambigüedad Semántica:</strong> Inconsistencia en nombres de materiales y colores entre competidores.</p>
-                        <p class="text-sm border-l-2 border-orange-500/50 pl-3"><strong class="text-white">Datos Incompletos:</strong> Productos con descripciones vacías que requieren análisis puramente visual.</p>
-                    </div>
-                </div>
+                <p class="text-slate-300 text-lg leading-relaxed border-l-4 border-primary/50 pl-6">
+                    Automatizar la asignación de tendencias y unificar atributos mediante la combinación de <strong>Diccionario  e Inteligencia Artificial</strong>, garantizando precisión y consistencia en la clasificación.
+                </p>
             </div>
         </div>
     </section>
@@ -223,7 +280,7 @@
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-400 border border-slate-700 px-3 py-1 rounded-full group-hover:border-primary group-hover:text-primary transition-colors">Ver Galería</span>
                     </div>
                     <div class="space-y-4 text-slate-300 relative">
-                        <p>Rescata lo <strong>esencialmente humano</strong>: reconectar con nuestras raíces, valorar el trabajo artesanal y promover un consumo responsable.</p>
+                        <p>Busca la conexión con la naturaleza y raices <strong>mediante materiales y siluetas artesanales.</strong> Fomenta un consumo responsable que honra la tradición y la sostenibilidad.</p>
                         <p class="text-sm text-primary font-bold mt-4">Da click para ver galería</p>
                     </div>
                 </div>
@@ -235,7 +292,7 @@
                         <span class="text-xs font-bold uppercase tracking-wider text-slate-400 border border-slate-700 px-3 py-1 rounded-full group-hover:border-secondary group-hover:text-secondary transition-colors">Ver Galería</span>
                     </div>
                     <div class="space-y-4 text-slate-300 relative">
-                        <p>Regreso a lo esencial: <strong>consumo consciente</strong> y valorar los objetos que aportan bienestar y equilibrio.</p>
+                        <p>Promueve el consumo consiente y el bienestar a través de diseños <strong>funcionales y minimalistas.</strong> Formas simples, proporciones expresivas y contrastes que aportan equilibrio y calma.</p>
                         <p class="text-sm text-secondary font-bold mt-4">Da click para ver galería</p>
                     </div>
                 </div>
@@ -246,7 +303,7 @@
     <!-- ARQUITECTURA ANIMADA -->
     <section id="arquitectura" class="py-20 px-6 bg-black/20 border-y border-white/5 overflow-hidden">
         <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl font-display font-bold mb-16 text-center reveal">Flujo de Procesamiento Inteligente</h2>
+            <h2 class="text-3xl font-display font-bold mb-16 text-center reveal">Flujo de Procesamiento</h2>
             <div class="relative">
                 <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-white/5 -translate-y-1/2 z-0"></div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10" id="pipeline-container">
@@ -305,7 +362,7 @@
                         <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">04</div>
                         <div class="step-icon w-12 h-12 rounded-lg bg-green-500/20 text-green-400 flex items-center justify-center text-xl mb-4">✅</div>
                         <h3 class="text-lg font-bold mb-1">Resultados</h3>
-                        <p class="text-slate-400 text-xs mb-3">Validación y Dashboard.</p>
+                        <p class="text-slate-400 text-xs mb-3">Validación con Investigación.</p>
                         <div class="step-visual h-20 flex items-center justify-center">
                             <div class="w-12 h-12 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 text-2xl animate-bounce shadow-[0_0_20px_rgba(34,197,94,0.4)]">✓</div>
                         </div>
@@ -317,12 +374,45 @@
         </div>
     </section>
 
+    <!-- RETOS (MOVIDO AQUÍ) -->
+    <section id="retos" class="py-20 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="glass-panel p-8 rounded-2xl reveal hover:bg-white/5 transition-colors border-l-4 border-orange-500">
+                <div class="flex items-center gap-4 mb-8">
+                    <span class="p-3 rounded-lg bg-orange-500/20 text-orange-400 text-2xl">🚧</span>
+                    <div>
+                        <h3 class="text-2xl font-bold">Retos y Desafíos Técnicos</h3>
+                        <p class="text-slate-400 text-sm">Obstáculos superados durante la implementación</p>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-white border-b border-white/10 pb-2">Datos</h4>
+                        <div class="bg-white/5 p-4 rounded-lg">
+                            <strong class="text-orange-400 block mb-1">Ambigüedad Semántica</strong>
+                            <p class="text-slate-400 text-sm">Inconsistencia en nombres de materiales y colores entre competidores (ej. "Rojo" vs "Carmín").</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-white border-b border-white/10 pb-2">Información</h4>
+                        <div class="bg-white/5 p-4 rounded-lg">
+                            <strong class="text-orange-400 block mb-1">Datos Incompletos</strong>
+                            <p class="text-slate-400 text-sm">Productos con descripciones vacías que requieren un análisis puramente visual por parte de la IA.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- DEMO & LAB -->
     <section id="demo" class="py-20 px-6 bg-black/20">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-12 reveal">
                 <h2 class="text-3xl md:text-4xl font-display font-bold mb-4">Laboratorio de Tendencias</h2>
-                <p class="text-slate-400">Prueba el diccionario interactivo o analiza imágenes reales.</p>
+                <p class="text-slate-400">Prueba el diccionario interactivo o analiza imágenes</p>
+                    <p class="text-slate-400">Prueba con JARRONES</p>
+
             </div>
             <div class="flex justify-center gap-4 mb-10 reveal">
                 <button onclick="switchTab('lab')" id="btn-lab" class="px-6 py-2 rounded-full bg-white text-slate-900 font-bold shadow-lg transition-all">Simulador de Reglas</button>
@@ -355,7 +445,7 @@
                 </div>
             </div>
 
-            <!-- VISUAL (Ajuste solicitado) -->
+            <!-- VISUAL -->
             <div id="tab-visual" class="hidden">
                 <div class="grid md:grid-cols-3 gap-6 items-center">
                     <!-- Left -->
@@ -373,7 +463,7 @@
         </div>
     </section>
 
-    <!-- RESULTADOS IMPACTANTES (Dashboard Ajustado) -->
+    <!-- RESULTADOS IMPACTANTES -->
     <section id="resultados" class="py-20 px-6 bg-gradient-to-t from-slate-900 via-[#0f0518] to-transparent">
         <div class="max-w-6xl mx-auto">
             <h2 class="text-3xl font-display font-bold mb-12 text-center reveal">Resultados de Impacto</h2>
@@ -385,7 +475,7 @@
                     <div class="mb-4">
                         <div class="flex justify-between text-xs mb-1 text-slate-400"><span>Antes (Manual)</span><span>~1 Mes</span></div>
                         <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/5">
-                            <div class="bg-slate-500 h-full w-full"></div> <!-- Gris claro visible -->
+                            <div class="bg-purple-800 h-full w-full"></div> 
                         </div>
                     </div>
                     <div>
@@ -400,12 +490,12 @@
                 <!-- Tarjeta Errores -->
                 <div class="glass-panel p-8 rounded-2xl reveal delay-100 flex flex-col justify-center items-center text-center relative overflow-hidden h-full">
                     <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-50"></div>
-                    <div class="text-5xl font-display font-bold text-green-400 mb-2 animate-bounce">↓ 95%</div>
+                    <div class="text-5xl font-display font-bold text-green-400 mb-2 animate-bounce">↓ 90%</div>
                     <h3 class="text-lg font-bold text-white mb-1">Errores Manuales</h3>
                     <p class="text-slate-400 text-xs">Reducción drástica en catalogación.</p>
                 </div>
 
-                <!-- Tarjeta Estrategia (Centrada y sin borde lateral) -->
+                <!-- Tarjeta Estrategia -->
                 <div class="glass-panel p-8 rounded-2xl reveal delay-200 flex flex-col justify-center items-center text-center h-full relative overflow-hidden">
                     <div class="text-5xl mb-4">👁️</div>
                     <h3 class="text-lg font-bold text-white mb-2">Visión de Mercado</h3>
@@ -429,13 +519,21 @@
                 <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-colors">✕</button>
             </div>
             <div class="p-8 overflow-y-auto max-h-[80vh]">
-                <div class="mb-10"><h4 class="flex items-center gap-3 text-xl font-bold text-white mb-6 pb-2 border-b border-white/5"><span class="text-2xl">🍽️</span> Nuestra Casa <span class="text-xs font-normal text-slate-500 ml-auto uppercase">Cocina / Mesa</span></h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="modal-grid-1"></div></div>
-                <div><h4 class="flex items-center gap-3 text-xl font-bold text-white mb-6 pb-2 border-b border-white/5"><span class="text-2xl">🏺</span> Decoración <span class="text-xs font-normal text-slate-500 ml-auto uppercase">Living / Accesorios</span></h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="modal-grid-2"></div></div>
+                <div class="mb-10"><h4 class="flex items-center gap-3 text-xl font-bold text-white mb-6 pb-2 border-b border-white/5"><span class="text-2xl">🍽️</span> Nuestra Casa <span class="text-xs font-normal text-slate-500 ml-auto uppercase">Hardline</span></h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="modal-grid-1"></div></div>
+                <div><h4 class="flex items-center gap-3 text-xl font-bold text-white mb-6 pb-2 border-b border-white/5"><span class="text-2xl">🏺</span> Decoración <span class="text-xs font-normal text-slate-500 ml-auto uppercase"></span></h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="modal-grid-2"></div></div>
             </div>
         </div>
     </div>
 
     <script>
+        // Intro cleanup script
+        setTimeout(() => {
+            const intro = document.getElementById('intro-overlay');
+            if(intro) {
+                intro.style.display = 'none';
+            }
+        }, 4500); // Remove from DOM shortly after animation ends
+
         function reveal() { var reveals = document.querySelectorAll(".reveal"); for (var i = 0; i < reveals.length; i++) { if (reveals[i].getBoundingClientRect().top < window.innerHeight - 100) reveals[i].classList.add("active"); } }
         window.addEventListener("scroll", reveal); reveal();
 
@@ -490,7 +588,7 @@
                 const activeId = steps[currentStep]; const activeEl = document.getElementById(`step-${activeId}`);
                 if(activeEl) { activeEl.classList.add('step-active'); const st = activeEl.querySelector('.step-status'); st.textContent = '● Procesando'; st.classList.add('text-primary'); }
                 currentStep = (currentStep + 1) % steps.length;
-            }, 3000);
+            }, 5000);
         }
         document.addEventListener('DOMContentLoaded', startPipelineAnimation);
 
@@ -518,5 +616,3 @@
     </script>
 </body>
 </html>
-
-
