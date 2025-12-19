@@ -1,224 +1,284 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, MapPin, Calendar, Clock, Plus, Trash2, Dog, List, CalendarDays, Award } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paseo Canino Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .tab-active { @apply bg-orange-500 text-white shadow-lg shadow-orange-200; }
+        .tab-inactive { @apply text-slate-500 hover:bg-slate-100; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-orange-50 text-slate-800 pb-24 min-h-screen">
 
-const App = () => {
-  const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'history'
-  const [walks, setWalks] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-
-  // Datos del horario proporcionados
-  const scheduleData = {
-    weekdays: [
-      { time: "10:00 AM", person: "Itzel", type: "Paseo" },
-      { time: "03:00 PM", person: "Gael", type: "Paseo" },
-      { time: "09:30 PM", person: "Montse", type: "Paseo" },
-    ],
-    saturday: [
-      { time: "10:00 AM", person: "Itzel", type: "Paseo" },
-      { time: "03:00 PM", person: "Gael", type: "Paseo" },
-      { time: "09:30 PM", person: "Montse", type: "Paseo" },
-    ],
-    sunday: [
-      { time: "09:00 AM", person: "Gael", type: "Paseo" },
-      { time: "09:00 - 11:00 AM", person: "Todos", type: "Entrenamiento" },
-      { time: "02:00 - 04:00 PM", person: "Itzel", type: "Paseo" },
-      { time: "08:00 PM", person: "Montse", type: "Paseo" },
-    ]
-  };
-
-  useEffect(() => {
-    const savedWalks = JSON.parse(localStorage.getItem('dog_walks') || '[]');
-    setWalks(savedWalks);
-  }, []);
-
-  const saveToLocalStorage = (updatedWalks) => {
-    localStorage.setItem('dog_walks', JSON.stringify(updatedWalks));
-    setWalks(updatedWalks);
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPreviewImage(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAddWalk = (e) => {
-    e.preventDefault();
-    setIsUploading(true);
-    const now = new Date();
-    const newWalk = {
-      id: Date.now(),
-      timestamp: now.toISOString(),
-      dateDisplay: now.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-      timeDisplay: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-      image: previewImage || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=400",
-      note: e.target.note.value || "¡Paseo completado!"
-    };
-    const updatedWalks = [newWalk, ...walks];
-    saveToLocalStorage(updatedWalks);
-    setPreviewImage(null);
-    setShowForm(false);
-    setIsUploading(false);
-    setActiveTab('history');
-  };
-
-  const deleteWalk = (id) => {
-    const updatedWalks = walks.filter(walk => walk.id !== id);
-    saveToLocalStorage(updatedWalks);
-  };
-
-  const ScheduleRow = ({ item }) => (
-    <div className="flex items-center justify-between p-4 border-b border-orange-50 last:border-0 hover:bg-orange-50/50 transition-colors">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${item.type === 'Entrenamiento' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
-          {item.type === 'Entrenamiento' ? <Award size={18} /> : <Clock size={18} />}
-        </div>
-        <div>
-          <p className="font-bold text-slate-800">{item.time}</p>
-          <p className="text-xs text-slate-500 uppercase tracking-wide">{item.type}</p>
-        </div>
-      </div>
-      <div className="text-right">
-        <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm font-semibold text-orange-600 shadow-sm">
-          {item.person}
-        </span>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-orange-50 font-sans text-slate-800 pb-24">
-      {/* Header */}
-      <header className="bg-white border-b border-orange-100 sticky top-0 z-20 p-4 shadow-sm">
-        <div className="max-w-md mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-200">
-              <Dog className="text-white" size={24} />
-            </div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">Dog Walker</h1>
-          </div>
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            className={`p-3 rounded-2xl transition-all shadow-md ${showForm ? 'bg-slate-800 text-white rotate-45' : 'bg-orange-500 text-white hover:scale-105'}`}
-          >
-            <Plus size={20} />
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-md mx-auto p-4">
-        {/* Formulario de Registro Rápido */}
-        {showForm && (
-          <div className="bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-orange-100 animate-in slide-in-from-top-4 duration-300">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">📸 Registrar Paseo Actual</h2>
-            <form onSubmit={handleAddWalk} className="space-y-4">
-              <div className="relative group">
-                <div className={`w-full h-56 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all overflow-hidden ${previewImage ? 'border-orange-500' : 'border-slate-300 bg-slate-50'}`}>
-                  {previewImage ? (
-                    <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <div className="bg-white p-4 rounded-full shadow-sm mb-2">
-                        <Camera size={32} className="text-orange-500" />
-                      </div>
-                      <p className="text-sm font-medium text-slate-600">Haz clic para subir o tomar foto</p>
-                      <p className="text-xs text-slate-400 mt-1">Se guardará fecha y hora automáticamente</p>
-                    </>
-                  )}
+    <!-- Header -->
+    <header class="bg-white border-b border-orange-100 sticky top-0 z-20 p-4 shadow-sm">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-200">
+                    <i data-lucide="dog" class="text-white w-6 h-6"></i>
                 </div>
-                <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" required />
-              </div>
-              <input name="note" type="text" placeholder="¿Algún comentario del paseo?" className="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none transition-all" />
-              <button type="submit" disabled={isUploading} className="w-full bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 transition-all">
-                {isUploading ? 'Guardando...' : 'Confirmar Paseo'}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* CONTENIDO PRINCIPAL POR TABS */}
-        {activeTab === 'schedule' ? (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-              <div className="bg-orange-500 p-4 text-white">
-                <h2 className="font-bold flex items-center gap-2"><CalendarDays size={20} /> Lunes a Viernes</h2>
-              </div>
-              <div>{scheduleData.weekdays.map((item, idx) => <ScheduleRow key={idx} item={item} />)}</div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900">Dog Walker</h1>
             </div>
+            <button id="toggleFormBtn" class="p-3 rounded-2xl bg-orange-500 text-white shadow-md transition-all active:scale-95">
+                <i data-lucide="plus" id="plusIcon" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
 
-            <div className="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-              <div className="bg-slate-800 p-4 text-white">
-                <h2 className="font-bold flex items-center gap-2"><CalendarDays size={20} /> Sábados</h2>
-              </div>
-              <div>{scheduleData.saturday.map((item, idx) => <ScheduleRow key={idx} item={item} />)}</div>
-            </div>
-
-            <div className="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-              <div className="bg-purple-600 p-4 text-white">
-                <h2 className="font-bold flex items-center gap-2"><CalendarDays size={20} /> Domingos</h2>
-              </div>
-              <div>{scheduleData.sunday.map((item, idx) => <ScheduleRow key={idx} item={item} />)}</div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            {walks.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-300">
-                <Dog size={48} className="text-slate-200 mx-auto mb-2" />
-                <p className="text-slate-400">Sin paseos registrados aún.</p>
-              </div>
-            ) : (
-              walks.map((walk) => (
-                <article key={walk.id} className="bg-white rounded-[2rem] overflow-hidden shadow-md border border-slate-100">
-                  <div className="relative h-72">
-                    <img src={walk.image} alt="Paseo" className="w-full h-full object-cover" />
-                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                      <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/20">
-                        <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">{walk.dateDisplay}</p>
-                        <div className="flex items-center gap-1 text-slate-800">
-                          <Clock size={14} className="text-orange-500" />
-                          <span className="text-lg font-black">{walk.timeDisplay}</span>
+    <main class="max-w-md mx-auto p-4">
+        
+        <!-- Formulario (Oculto por defecto) -->
+        <div id="uploadForm" class="hidden bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-orange-100">
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">📸 Registrar Paseo Actual</h2>
+            <form id="dogWalkForm" class="space-y-4">
+                <div class="relative group">
+                    <div id="dropzone" class="w-full h-56 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center transition-all overflow-hidden">
+                        <div id="previewContainer" class="hidden w-full h-full">
+                            <img id="imagePreview" src="" alt="Preview" class="w-full h-full object-cover">
                         </div>
-                      </div>
-                      <button onClick={() => deleteWalk(walk.id)} className="bg-red-500 text-white p-3 rounded-xl shadow-lg active:scale-90">
-                        <Trash2 size={18} />
-                      </button>
+                        <div id="uploadPrompt" class="flex flex-col items-center">
+                            <div class="bg-white p-4 rounded-full shadow-sm mb-2">
+                                <i data-lucide="camera" class="text-orange-500 w-8 h-8"></i>
+                            </div>
+                            <p class="text-sm font-medium text-slate-600">Click para tomar/subir foto</p>
+                        </div>
                     </div>
-                  </div>
-                  <div className="p-4 bg-white">
-                    <p className="text-slate-700 font-medium italic">"{walk.note}"</p>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        )}
-      </main>
+                    <input type="file" id="fileInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer" required>
+                </div>
+                <input type="text" id="noteInput" placeholder="¿Algún comentario?" class="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none">
+                <button type="submit" class="w-full bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-200 active:scale-95 transition-all">
+                    Confirmar Paseo
+                </button>
+            </form>
+        </div>
 
-      {/* Navegación Inferior */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 px-2 py-2 rounded-3xl shadow-2xl flex gap-2 z-30">
-        <button 
-          onClick={() => setActiveTab('schedule')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all ${activeTab === 'schedule' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'text-slate-500 hover:bg-slate-100'}`}
-        >
-          <Calendar size={20} />
-          <span className="font-bold text-sm">Horarios</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('history')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all ${activeTab === 'history' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'text-slate-500 hover:bg-slate-100'}`}
-        >
-          <List size={20} />
-          <span className="font-bold text-sm">Historial</span>
-        </button>
-      </nav>
-    </div>
-  );
-};
+        <!-- Sección de Horarios -->
+        <div id="scheduleSection" class="space-y-6">
+            <!-- Lunes a Viernes -->
+            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-orange-500 p-4 text-white">
+                    <h2 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5"></i> Lunes a Viernes</h2>
+                </div>
+                <div id="weekdaysList"></div>
+            </div>
 
-export default App;
+            <!-- Sábados -->
+            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-slate-800 p-4 text-white">
+                    <h2 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5"></i> Sábados</h2>
+                </div>
+                <div id="saturdayList"></div>
+            </div>
+
+            <!-- Domingos -->
+            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-purple-600 p-4 text-white">
+                    <h2 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5"></i> Domingos</h2>
+                </div>
+                <div id="sundayList"></div>
+            </div>
+        </div>
+
+        <!-- Sección de Historial (Oculta por defecto) -->
+        <div id="historySection" class="hidden space-y-6">
+            <div id="walksHistory" class="space-y-6">
+                <!-- Aquí se cargan los paseos -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Navegación Inferior -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 px-2 py-2 rounded-3xl shadow-2xl flex gap-2 z-30">
+        <button id="tabSchedule" class="tab-active flex items-center gap-2 px-6 py-3 rounded-2xl transition-all">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="font-bold text-sm">Horarios</span>
+        </button>
+        <button id="tabHistory" class="tab-inactive flex items-center gap-2 px-6 py-3 rounded-2xl transition-all">
+            <i data-lucide="list" class="w-5 h-5"></i>
+            <span class="font-bold text-sm">Historial</span>
+        </button>
+    </nav>
+
+    <script>
+        // --- DATOS DEL HORARIO ---
+        const schedule = {
+            weekdays: [
+                { time: "10:00 AM", person: "Itzel", type: "Paseo" },
+                { time: "03:00 PM", person: "Gael", type: "Paseo" },
+                { time: "09:30 PM", person: "Montse", type: "Paseo" },
+            ],
+            saturday: [
+                { time: "10:00 AM", person: "Itzel", type: "Paseo" },
+                { time: "03:00 PM", person: "Gael", type: "Paseo" },
+                { time: "09:30 PM", person: "Montse", type: "Paseo" },
+            ],
+            sunday: [
+                { time: "09:00 AM", person: "Gael", type: "Paseo" },
+                { time: "09:00 - 11:00 AM", person: "Todos", type: "Entrenamiento" },
+                { time: "02:00 - 04:00 PM", person: "Itzel", type: "Paseo" },
+                { time: "08:00 PM", person: "Montse", type: "Paseo" },
+            ]
+        };
+
+        // --- LÓGICA DE LA APP ---
+        let walks = JSON.parse(localStorage.getItem('dog_walks') || '[]');
+
+        function init() {
+            lucide.createIcons();
+            renderSchedules();
+            renderHistory();
+            setupEventListeners();
+        }
+
+        function renderSchedules() {
+            const renderList = (data, containerId) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = data.map(item => `
+                    <div class="flex items-center justify-between p-4 border-b border-orange-50 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-lg ${item.type === 'Entrenamiento' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}">
+                                <i data-lucide="${item.type === 'Entrenamiento' ? 'award' : 'clock'}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">${item.time}</p>
+                                <p class="text-xs text-slate-500 uppercase">${item.type}</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm font-semibold text-orange-600 shadow-sm">${item.person}</span>
+                    </div>
+                `).join('');
+            };
+
+            renderList(schedule.weekdays, 'weekdaysList');
+            renderList(schedule.saturday, 'saturdayList');
+            renderList(schedule.sunday, 'sundayList');
+            lucide.createIcons();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('walksHistory');
+            if (walks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-300">
+                        <i data-lucide="dog" class="w-12 h-12 text-slate-200 mx-auto mb-2"></i>
+                        <p class="text-slate-400">Sin paseos registrados aún.</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = walks.map(walk => `
+                    <article class="bg-white rounded-[2rem] overflow-hidden shadow-md border border-slate-100">
+                        <div class="relative h-72">
+                            <img src="${walk.image}" class="w-full h-full object-cover">
+                            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                                <div class="bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg">
+                                    <p class="text-[10px] font-bold text-orange-600 uppercase tracking-widest">${walk.dateDisplay}</p>
+                                    <div class="flex items-center gap-1 text-slate-800">
+                                        <i data-lucide="clock" class="w-3 h-3 text-orange-500"></i>
+                                        <span class="text-lg font-black">${walk.timeDisplay}</span>
+                                    </div>
+                                </div>
+                                <button onclick="deleteWalk(${walk.id})" class="bg-red-500 text-white p-3 rounded-xl shadow-lg active:scale-90">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white">
+                            <p class="text-slate-700 font-medium italic">"${walk.note}"</p>
+                        </div>
+                    </article>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function setupEventListeners() {
+            // Cambio de Pestañas
+            document.getElementById('tabSchedule').addEventListener('click', () => switchTab('schedule'));
+            document.getElementById('tabHistory').addEventListener('click', () => switchTab('history'));
+
+            // Mostrar/Ocultar Formulario
+            document.getElementById('toggleFormBtn').addEventListener('click', () => {
+                const form = document.getElementById('uploadForm');
+                const icon = document.getElementById('plusIcon');
+                form.classList.toggle('hidden');
+                icon.style.transform = form.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(45deg)';
+            });
+
+            // Previsualización de Imagen
+            document.getElementById('fileInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        document.getElementById('imagePreview').src = event.target.result;
+                        document.getElementById('previewContainer').classList.remove('hidden');
+                        document.getElementById('uploadPrompt').classList.add('hidden');
+                        document.getElementById('dropzone').classList.replace('border-slate-300', 'border-orange-500');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Guardar Paseo
+            document.getElementById('dogWalkForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const now = new Date();
+                const newWalk = {
+                    id: Date.now(),
+                    dateDisplay: now.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }),
+                    timeDisplay: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                    image: document.getElementById('imagePreview').src,
+                    note: document.getElementById('noteInput').value || "¡Paseo completado!"
+                };
+
+                walks.unshift(newWalk);
+                localStorage.setItem('dog_walks', JSON.stringify(walks));
+                
+                // Reset y Switch
+                e.target.reset();
+                document.getElementById('previewContainer').classList.add('hidden');
+                document.getElementById('uploadPrompt').classList.remove('hidden');
+                document.getElementById('uploadForm').classList.add('hidden');
+                document.getElementById('plusIcon').style.transform = 'rotate(0deg)';
+                switchTab('history');
+                renderHistory();
+            });
+        }
+
+        function switchTab(tab) {
+            const schedSection = document.getElementById('scheduleSection');
+            const histSection = document.getElementById('historySection');
+            const tabSched = document.getElementById('tabSchedule');
+            const tabHist = document.getElementById('tabHistory');
+
+            if (tab === 'schedule') {
+                schedSection.classList.remove('hidden');
+                histSection.classList.add('hidden');
+                tabSched.className = 'tab-active flex items-center gap-2 px-6 py-3 rounded-2xl transition-all';
+                tabHist.className = 'tab-inactive flex items-center gap-2 px-6 py-3 rounded-2xl transition-all';
+            } else {
+                schedSection.classList.add('hidden');
+                histSection.classList.remove('hidden');
+                tabSched.className = 'tab-inactive flex items-center gap-2 px-6 py-3 rounded-2xl transition-all';
+                tabHist.className = 'tab-active flex items-center gap-2 px-6 py-3 rounded-2xl transition-all';
+            }
+        }
+
+        window.deleteWalk = (id) => {
+            walks = walks.filter(w => w.id !== id);
+            localStorage.setItem('dog_walks', JSON.stringify(walks));
+            renderHistory();
+        };
+
+        // Iniciar app
+        window.onload = init;
+    </script>
+</body>
+</html>
