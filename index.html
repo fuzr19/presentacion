@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dog Walker Pro - Cloud Sync</title>
+    <title>Dog Walker Pro - Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -12,22 +12,21 @@
         .tab-active { @apply bg-orange-500 text-white shadow-lg shadow-orange-200 scale-105; }
         .tab-inactive { @apply text-slate-500 hover:bg-slate-100; }
         .hidden { display: none !important; }
-        /* Animación suave para la carga */
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-orange-50 text-slate-800 pb-28 min-h-screen">
+<body class="bg-orange-50 text-slate-800 pb-32 min-h-screen">
 
     <header class="bg-white border-b border-orange-100 sticky top-0 z-20 p-4 shadow-sm">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <div class="bg-orange-500 p-2 rounded-xl">
+                <div class="bg-orange-500 p-2 rounded-xl shadow-md">
                     <i data-lucide="dog" class="text-white w-6 h-6"></i>
                 </div>
-                <h1 class="text-xl font-bold text-slate-900">Dog Walker Cloud</h1>
+                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Dog Tracker</h1>
             </div>
-            <button id="toggleFormBtn" class="p-3 rounded-2xl bg-orange-500 text-white shadow-md active:scale-90 transition-transform">
+            <button id="toggleFormBtn" class="p-3 rounded-2xl bg-orange-500 text-white shadow-lg active:scale-90 transition-all">
                 <i data-lucide="plus" id="plusIcon" class="w-6 h-6 transition-transform"></i>
             </button>
         </div>
@@ -35,48 +34,50 @@
 
     <main class="max-w-md mx-auto p-4">
         
-        <!-- Formulario para subir paseos -->
+        <!-- Formulario de Registro -->
         <div id="uploadForm" class="hidden bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-orange-100 fade-in">
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2">📸 Registrar Paseo</h2>
             <form id="dogWalkForm" class="space-y-4">
                 <div class="relative group">
-                    <div id="dropzone" class="w-full h-56 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center overflow-hidden">
+                    <div id="dropzone" class="w-full h-64 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center overflow-hidden transition-colors">
                         <div id="previewContainer" class="hidden w-full h-full">
                             <img id="imagePreview" src="" alt="Preview" class="w-full h-full object-cover">
                         </div>
-                        <div id="uploadPrompt" class="flex flex-col items-center p-4 text-center">
-                            <i data-lucide="camera" class="text-orange-500 w-10 h-10 mb-2"></i>
-                            <p class="text-sm font-bold text-slate-600">Toca para tomar foto</p>
-                            <p class="text-xs text-slate-400 mt-1">Se guardará fecha y hora automáticamente</p>
+                        <div id="uploadPrompt" class="flex flex-col items-center p-6 text-center">
+                            <div class="bg-white p-4 rounded-full shadow-sm mb-3">
+                                <i data-lucide="camera" class="text-orange-500 w-10 h-10"></i>
+                            </div>
+                            <p class="text-sm font-bold text-slate-600">Haz clic para tomar foto</p>
+                            <p class="text-xs text-slate-400 mt-2">Se registrará la hora exacta automáticamente</p>
                         </div>
                     </div>
                     <input type="file" id="fileInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer" required>
                 </div>
-                <input type="text" id="noteInput" placeholder="¿Quién lo sacó?" class="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-orange-500">
-                <button type="submit" id="submitBtn" class="w-full bg-orange-600 text-white font-bold py-5 rounded-2xl shadow-lg active:scale-95 disabled:bg-slate-400 text-lg">
-                    Confirmar Paseo
+                <input type="text" id="noteInput" placeholder="¿Quién lo sacó hoy?" class="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all">
+                <button type="submit" id="submitBtn" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-orange-100 active:scale-95 text-lg">
+                    CONFIRMAR PASEO
                 </button>
             </form>
         </div>
 
         <!-- Sección de Horarios -->
         <div id="scheduleSection" class="space-y-6 fade-in">
-            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-                <div class="bg-orange-500 p-4 text-white font-bold flex items-center gap-2">
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-orange-500 p-5 text-white font-bold flex items-center gap-2">
                     <i data-lucide="calendar"></i> Lunes a Viernes
                 </div>
                 <div id="weekdaysList" class="divide-y divide-orange-50"></div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-                <div class="bg-slate-800 p-4 text-white font-bold flex items-center gap-2">
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-slate-800 p-5 text-white font-bold flex items-center gap-2">
                     <i data-lucide="calendar"></i> Sábados
                 </div>
                 <div id="saturdayList" class="divide-y divide-orange-50"></div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-                <div class="bg-purple-600 p-4 text-white font-bold flex items-center gap-2">
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-purple-600 p-5 text-white font-bold flex items-center gap-2">
                     <i data-lucide="award"></i> Domingos
                 </div>
                 <div id="sundayList" class="divide-y divide-orange-50"></div>
@@ -86,40 +87,30 @@
         <!-- Sección de Historial -->
         <div id="historySection" class="hidden space-y-6 fade-in">
             <div id="walksHistory" class="space-y-6">
-                <!-- Los paseos de la nube cargan aquí -->
+                <!-- Los paseos se cargan aquí -->
             </div>
         </div>
     </main>
 
     <!-- Navegación Inferior -->
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 px-2 py-2 rounded-3xl shadow-2xl flex gap-2 z-30">
-        <button id="tabSchedule" class="tab-active flex items-center gap-2 px-6 py-4 rounded-2xl transition-all">
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xl border border-slate-200 p-2 rounded-[2rem] shadow-2xl flex gap-2 z-30">
+        <button id="tabSchedule" class="tab-active flex items-center gap-2 px-8 py-4 rounded-3xl transition-all">
             <i data-lucide="calendar" class="w-5 h-5"></i>
             <span class="font-bold text-sm">Horarios</span>
         </button>
-        <button id="tabHistory" class="tab-inactive flex items-center gap-2 px-6 py-4 rounded-2xl transition-all">
+        <button id="tabHistory" class="tab-inactive flex items-center gap-2 px-8 py-4 rounded-3xl transition-all">
             <i data-lucide="list" class="w-5 h-5"></i>
-            <span class="font-bold text-sm">Historial</span>
+            <span class="font-bold text-sm">Fotos</span>
         </button>
     </nav>
 
-    <!-- Firebase y Lógica -->
+    <!-- Lógica de la Aplicación -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración de la App
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let user = null;
-        let walks = [];
-
-        // 1. Mostrar Horarios Inmediatamente
+        // --- 1. HORARIOS (SIEMPRE VISIBLES) ---
         const scheduleData = {
             weekdays: [{t:"10:00 AM", p:"Itzel"}, {t:"03:00 PM", p:"Gael"}, {t:"09:30 PM", p:"Montse"}],
             sat: [{t:"10:00 AM", p:"Itzel"}, {t:"03:00 PM", p:"Gael"}, {t:"09:30 PM", p:"Montse"}],
@@ -128,62 +119,80 @@
 
         function renderStaticSchedules() {
             const fill = (data, id) => {
-                document.getElementById(id).innerHTML = data.map(i => `
-                    <div class="flex items-center justify-between p-5 hover:bg-orange-50/50">
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = data.map(i => `
+                    <div class="flex items-center justify-between p-5 active:bg-orange-50 transition-colors">
                         <div class="flex items-center gap-3">
                             <i data-lucide="clock" class="w-5 h-5 text-blue-400"></i>
                             <span class="font-bold text-slate-800 text-lg">${i.t}</span>
                         </div>
-                        <span class="px-4 py-1.5 bg-orange-50 border border-orange-100 rounded-full text-sm font-bold text-orange-600">${i.p}</span>
+                        <span class="px-4 py-2 bg-white border-2 border-orange-100 rounded-2xl text-sm font-black text-orange-600 shadow-sm">${i.p}</span>
                     </div>
                 `).join('');
             };
             fill(scheduleData.weekdays, 'weekdaysList');
             fill(scheduleData.sat, 'saturdayList');
             fill(scheduleData.sun, 'sundayList');
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
-        // 2. Autenticación y Sincronización
-        async function startApp() {
-            renderStaticSchedules();
-            
+        renderStaticSchedules();
+
+        // --- 2. CONFIGURACIÓN CLOUD ---
+        let db, auth, user, walks = [];
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        async function initApp() {
             try {
+                const config = JSON.parse(__firebase_config || '{}');
+                if (!config.apiKey) throw new Error("No config");
+
+                const app = initializeApp(config);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (e) { console.error("Auth error", e); }
 
-            onAuthStateChanged(auth, (u) => {
-                user = u;
-                if (user) syncData();
-            });
+                onAuthStateChanged(auth, (u) => {
+                    user = u;
+                    if (user) startSync();
+                });
+            } catch (err) {
+                console.warn("Cloud no configurado, usando modo offline.");
+                document.getElementById('walksHistory').innerHTML = '<div class="text-center py-20 text-slate-400">Error conectando a la nube.</div>';
+            }
         }
 
-        function syncData() {
+        function startSync() {
             const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'walks');
             onSnapshot(colRef, (snap) => {
                 walks = snap.docs.map(d => ({id: d.id, ...d.data()}))
                     .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 renderHistory();
+            }, (err) => {
+                console.error("Sync error", err);
             });
         }
 
-        // 3. Funciones de Imagen y Guardado
+        // --- 3. MANEJO DE IMÁGENES (OPTIMIZADO PARA 100+ FOTOS) ---
         async function compressImage(base64) {
             return new Promise((res) => {
                 const img = new Image();
                 img.src = base64;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const scale = Math.min(800 / img.width, 800 / img.height, 1);
+                    const MAX_SIZE = 600; // Tamaño ideal para celular
+                    const scale = Math.min(MAX_SIZE / img.width, MAX_SIZE / img.height, 1);
                     canvas.width = img.width * scale;
                     canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    res(canvas.toDataURL('image/jpeg', 0.6)); // Comprimir al 60% para que sea rápido
+                    res(canvas.toDataURL('image/jpeg', 0.45)); // Calidad reducida para que cargue volando
                 };
             });
         }
@@ -194,18 +203,18 @@
             const preview = document.getElementById('imagePreview');
             const note = document.getElementById('noteInput');
 
-            if (!user) return alert("Conectando con la nube...");
+            if (!db) return alert("Espera a que conecte con la nube...");
             
             try {
                 btn.disabled = true;
-                btn.innerText = "Subiendo...";
+                btn.innerText = "SUBIENDO...";
                 
                 const compressed = await compressImage(preview.src);
                 const now = new Date();
                 
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'walks'), {
                     image: compressed,
-                    note: note.value || "Paseo listo",
+                    note: note.value || "Paseo completado",
                     dateDisplay: now.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }),
                     timeDisplay: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
                     createdAt: serverTimestamp()
@@ -215,58 +224,60 @@
                 document.getElementById('previewContainer').classList.add('hidden');
                 document.getElementById('uploadPrompt').classList.remove('hidden');
                 document.getElementById('uploadForm').classList.add('hidden');
+                document.getElementById('plusIcon').style.transform = 'rotate(0deg)';
                 switchTab('history');
             } catch (err) {
-                alert("Error al subir. Intenta de nuevo.");
-                console.error(err);
+                alert("Error al guardar. Revisa tu internet.");
             } finally {
                 btn.disabled = false;
-                btn.innerText = "Confirmar Paseo";
+                btn.innerText = "CONFIRMAR PASEO";
             }
         };
 
         function renderHistory() {
             const container = document.getElementById('walksHistory');
             if (walks.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400"><i data-lucide="camera" class="mx-auto mb-2 opacity-20"></i>Aún no hay fotos.</div>`;
+                container.innerHTML = `<div class="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">No hay fotos guardadas.</div>`;
             } else {
                 container.innerHTML = walks.map(w => `
-                    <div class="bg-white rounded-[2rem] overflow-hidden shadow-md border border-slate-100 fade-in">
+                    <div class="bg-white rounded-[2.5rem] overflow-hidden shadow-md border border-slate-100 fade-in">
                         <div class="relative h-80">
-                            <img src="${w.image}" class="w-full h-full object-cover">
+                            <img src="${w.image}" class="w-full h-full object-cover" loading="lazy">
                             <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                                <div class="bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-white">
-                                    <p class="text-[10px] font-bold text-orange-600 uppercase tracking-tighter">${w.dateDisplay}</p>
+                                <div class="bg-white/95 backdrop-blur-md p-4 rounded-3xl shadow-xl">
+                                    <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">${w.dateDisplay}</p>
                                     <div class="flex items-center gap-1 text-slate-900">
-                                        <i data-lucide="clock" class="w-3 h-3 text-orange-500"></i>
-                                        <span class="text-xl font-black">${w.timeDisplay}</span>
+                                        <i data-lucide="clock" class="w-4 h-4 text-orange-500"></i>
+                                        <span class="text-xl font-black tracking-tight">${w.timeDisplay}</span>
                                     </div>
                                 </div>
-                                <button onclick="window.delWalk('${w.id}')" class="bg-red-500/90 text-white p-4 rounded-2xl shadow-lg active:scale-75">
+                                <button onclick="window.delWalk('${w.id}')" class="bg-red-500 text-white p-4 rounded-2xl shadow-lg active:scale-75 transition-transform">
                                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="p-5 font-medium italic text-slate-700">"${w.note}"</div>
+                        <div class="p-5 font-bold text-slate-700 bg-white border-t border-slate-50 italic">"${w.note}"</div>
                     </div>
                 `).join('');
             }
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         window.delWalk = async (id) => {
-            if (confirm("¿Borrar foto?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'walks', id));
+            if (confirm("¿Seguro que quieres borrar este recuerdo?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'walks', id));
+                } catch (e) { alert("Error al borrar."); }
             }
         };
 
-        // 4. Navegación y Eventos Finales
+        // --- 4. NAVEGACIÓN ---
         function switchTab(tab) {
             document.getElementById('scheduleSection').classList.toggle('hidden', tab !== 'schedule');
             document.getElementById('historySection').classList.toggle('hidden', tab !== 'history');
-            document.getElementById('tabSchedule').className = tab === 'schedule' ? 'tab-active flex items-center gap-2 px-6 py-4 rounded-2xl transition-all' : 'tab-inactive flex items-center gap-2 px-6 py-4 rounded-2xl transition-all';
-            document.getElementById('tabHistory').className = tab === 'history' ? 'tab-active flex items-center gap-2 px-6 py-4 rounded-2xl transition-all' : 'tab-inactive flex items-center gap-2 px-6 py-4 rounded-2xl transition-all';
-            window.scrollTo(0, 0);
+            document.getElementById('tabSchedule').className = tab === 'schedule' ? 'tab-active flex items-center gap-2 px-8 py-4 rounded-3xl transition-all' : 'tab-inactive flex items-center gap-2 px-8 py-4 rounded-3xl transition-all';
+            document.getElementById('tabHistory').className = tab === 'history' ? 'tab-active flex items-center gap-2 px-8 py-4 rounded-3xl transition-all' : 'tab-inactive flex items-center gap-2 px-8 py-4 rounded-3xl transition-all';
+            window.scrollTo(0,0);
         }
 
         document.getElementById('tabSchedule').onclick = () => switchTab('schedule');
@@ -284,15 +295,15 @@
                     document.getElementById('imagePreview').src = ev.target.result;
                     document.getElementById('previewContainer').classList.remove('hidden');
                     document.getElementById('uploadPrompt').classList.add('hidden');
+                    document.getElementById('dropzone').classList.add('border-orange-500');
                 };
                 r.readAsDataURL(file);
             }
         };
         document.getElementById('dogWalkForm').onsubmit = window.handleSave;
 
-        // Iniciar todo
-        startApp();
-
+        initApp();
+        window.addEventListener('load', () => lucide.createIcons());
     </script>
 </body>
 </html>
