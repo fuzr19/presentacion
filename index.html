@@ -1,635 +1,224 @@
-<!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ASERTIVIDAD · Presentación de Proyecto</title>
-    
-    <!-- Fuentes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Config -->
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                fontFamily: {
-                    sans: ['Inter', 'sans-serif'],
-                    display: ['Outfit', 'sans-serif'],
-                    mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
-                },
-                extend: {
-                    colors: {
-                        background: '#0f0518',
-                        surface: '#1a0b2e',
-                        primary: '#e10098',
-                        secondary: '#00d2e6',
-                        accent: '#8b5cf6',
-                    },
-                    animation: {
-                        'blob': 'blob 10s infinite',
-                        'float': 'float 6s ease-in-out infinite',
-                        'scan': 'scan 1.5s linear infinite',
-                        'grow': 'growWidth 2s ease-out forwards',
-                        'dance': 'dance 1s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        scan: {
-                            '0%': { top: '0%' },
-                            '50%': { top: '100%' },
-                            '100%': { top: '0%' },
-                        },
-                        growWidth: {
-                            '0%': { width: '0%' },
-                            '100%': { width: 'var(--target-width)' },
-                        },
-                        dance: {
-                            '0%, 100%': { transform: 'rotate(-10deg) translateY(0)' },
-                            '50%': { transform: 'rotate(10deg) translateY(-4px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+import React, { useState, useEffect } from 'react';
+import { Camera, MapPin, Calendar, Clock, Plus, Trash2, Dog, List, CalendarDays, Award } from 'lucide-react';
 
-    <style>
-        html { scroll-behavior: smooth; scroll-padding-top: 100px; }
-        body { background-color: #0f0518; color: #f8fafc; overflow-x: hidden; }
-        .mesh-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; background: #0f0518; }
-        .mesh-blob { position: absolute; filter: blur(90px); opacity: 0.45; animation: blob 10s infinite alternate; border-radius: 50%; }
-        
-        .glass-panel {
-            background: rgba(26, 11, 46, 0.6);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(225, 0, 152, 0.15);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+const App = () => {
+  const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' or 'history'
+  const [walks, setWalks] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        @keyframes reveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  // Datos del horario proporcionados
+  const scheduleData = {
+    weekdays: [
+      { time: "10:00 AM", person: "Itzel", type: "Paseo" },
+      { time: "03:00 PM", person: "Gael", type: "Paseo" },
+      { time: "09:30 PM", person: "Montse", type: "Paseo" },
+    ],
+    saturday: [
+      { time: "10:00 AM", person: "Itzel", type: "Paseo" },
+      { time: "03:00 PM", person: "Gael", type: "Paseo" },
+      { time: "09:30 PM", person: "Montse", type: "Paseo" },
+    ],
+    sunday: [
+      { time: "09:00 AM", person: "Gael", type: "Paseo" },
+      { time: "09:00 - 11:00 AM", person: "Todos", type: "Entrenamiento" },
+      { time: "02:00 - 04:00 PM", person: "Itzel", type: "Paseo" },
+      { time: "08:00 PM", person: "Montse", type: "Paseo" },
+    ]
+  };
 
-        /* Modal */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 5, 24, 0.95); backdrop-filter: blur(8px);
-            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.4s; display: flex;
-            justify-content: center; overflow-y: auto; padding: 2rem 1rem;
-        }
-        .modal-overlay.open { opacity: 1; pointer-events: auto; }
-        .modal-content { width: 100%; max-width: 1000px; margin: auto; transform: translateY(20px); transition: transform 0.4s; }
-        .modal-overlay.open .modal-content { transform: translateY(0); }
-        
-        .gallery-img-container { aspect-ratio: 1; overflow: hidden; border-radius: 0.75rem; position: relative; }
-        .gallery-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-        .gallery-img-container:hover .gallery-img { transform: scale(1.1); }
-        
-        /* Pipeline */
-        .step-active {
-            border-color: #e10098 !important; background: rgba(225, 0, 152, 0.1) !important;
-            transform: scale(1.05) !important; box-shadow: 0 0 40px rgba(225, 0, 152, 0.2) !important; z-index: 10;
-        }
-        .progress-bar { width: 0%; height: 2px; background: #e10098; transition: width 5s linear; }
-        .step-active .progress-bar { width: 100%; }
-        .step-visual { display: none; opacity: 0; transition: opacity 0.3s ease; margin-top: 1rem; }
-        .step-active .step-visual { display: block; opacity: 1; }
-        .step-active .step-icon { display: none; }
+  useEffect(() => {
+    const savedWalks = JSON.parse(localStorage.getItem('dog_walks') || '[]');
+    setWalks(savedWalks);
+  }, []);
 
-        /* Intro Animation */
-        #intro-overlay {
-            position: fixed; inset: 0; background: #0f0518; z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-            animation: slideUp 0.8s ease-in-out 3.5s forwards;
-        }
-        .emoji-stage {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 6rem; opacity: 0; display: flex; gap: 1rem; align-items: center;
-        }
-        #stage-1 { animation: showHide1 1.2s ease-in-out forwards; }
-        .shake-emoji { animation: shake 0.5s infinite; }
-        #stage-2 { animation: showHide2 1.2s ease-in-out 1.2s forwards; }
-        #stage-3 { animation: showFinal 1.2s ease-in-out 2.4s forwards; }
+  const saveToLocalStorage = (updatedWalks) => {
+    localStorage.setItem('dog_walks', JSON.stringify(updatedWalks));
+    setWalks(updatedWalks);
+  };
 
-        @keyframes slideUp { to { transform: translateY(-100%); } }
-        
-        @keyframes showHide1 {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
-        }
-        @keyframes showHide2 {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
-        }
-        @keyframes showFinal {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-10deg); }
-            75% { transform: rotate(10deg); }
-        }
-    </style>
-</head>
-<body class="antialiased selection:bg-primary selection:text-white">
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviewImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
-    <!-- INTRO ANIMATION LAYER -->
-    <div id="intro-overlay">
-        <!-- Act 1 -->
-        <div id="stage-1" class="emoji-stage">
-            <span class="shake-emoji">📑</span>
-            <span class="shake-emoji" style="animation-delay: 0.1s">😵‍💫</span>
+  const handleAddWalk = (e) => {
+    e.preventDefault();
+    setIsUploading(true);
+    const now = new Date();
+    const newWalk = {
+      id: Date.now(),
+      timestamp: now.toISOString(),
+      dateDisplay: now.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      timeDisplay: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+      image: previewImage || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=400",
+      note: e.target.note.value || "¡Paseo completado!"
+    };
+    const updatedWalks = [newWalk, ...walks];
+    saveToLocalStorage(updatedWalks);
+    setPreviewImage(null);
+    setShowForm(false);
+    setIsUploading(false);
+    setActiveTab('history');
+  };
+
+  const deleteWalk = (id) => {
+    const updatedWalks = walks.filter(walk => walk.id !== id);
+    saveToLocalStorage(updatedWalks);
+  };
+
+  const ScheduleRow = ({ item }) => (
+    <div className="flex items-center justify-between p-4 border-b border-orange-50 last:border-0 hover:bg-orange-50/50 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className={`p-2 rounded-lg ${item.type === 'Entrenamiento' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+          {item.type === 'Entrenamiento' ? <Award size={18} /> : <Clock size={18} />}
         </div>
-        <!-- Act 2 -->
-        <div id="stage-2" class="emoji-stage">
-            <span class="animate-pulse">🤖</span>
-            <span class="text-yellow-400">⚡</span>
+        <div>
+          <p className="font-bold text-slate-800">{item.time}</p>
+          <p className="text-xs text-slate-500 uppercase tracking-wide">{item.type}</p>
         </div>
-        <!-- Act 3 -->
-        <div id="stage-3" class="emoji-stage">
-            <span class="animate-bounce" style="animation-delay: 0.1s">🏺</span>
-            <span class="animate-bounce" style="animation-delay: 0.2s">✨</span>
-        </div>
+      </div>
+      <div className="text-right">
+        <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm font-semibold text-orange-600 shadow-sm">
+          {item.person}
+        </span>
+      </div>
     </div>
+  );
 
-    <div class="mesh-bg">
-        <div class="mesh-blob bg-primary w-[500px] h-[500px] top-[-100px] left-[-100px] opacity-30"></div>
-        <div class="mesh-blob bg-indigo-900 w-[600px] h-[600px] bottom-[-100px] right-[-100px] animation-delay-2000"></div>
-        <div class="mesh-blob bg-fuchsia-800 w-[400px] h-[400px] top-[30%] left-[40%] animation-delay-4000 opacity-20"></div>
+  return (
+    <div className="min-h-screen bg-orange-50 font-sans text-slate-800 pb-24">
+      {/* Header */}
+      <header className="bg-white border-b border-orange-100 sticky top-0 z-20 p-4 shadow-sm">
+        <div className="max-w-md mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-200">
+              <Dog className="text-white" size={24} />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">Dog Walker</h1>
+          </div>
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className={`p-3 rounded-2xl transition-all shadow-md ${showForm ? 'bg-slate-800 text-white rotate-45' : 'bg-orange-500 text-white hover:scale-105'}`}
+          >
+            <Plus size={20} />
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-md mx-auto p-4">
+        {/* Formulario de Registro Rápido */}
+        {showForm && (
+          <div className="bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-orange-100 animate-in slide-in-from-top-4 duration-300">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">📸 Registrar Paseo Actual</h2>
+            <form onSubmit={handleAddWalk} className="space-y-4">
+              <div className="relative group">
+                <div className={`w-full h-56 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all overflow-hidden ${previewImage ? 'border-orange-500' : 'border-slate-300 bg-slate-50'}`}>
+                  {previewImage ? (
+                    <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <div className="bg-white p-4 rounded-full shadow-sm mb-2">
+                        <Camera size={32} className="text-orange-500" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-600">Haz clic para subir o tomar foto</p>
+                      <p className="text-xs text-slate-400 mt-1">Se guardará fecha y hora automáticamente</p>
+                    </>
+                  )}
+                </div>
+                <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" required />
+              </div>
+              <input name="note" type="text" placeholder="¿Algún comentario del paseo?" className="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none transition-all" />
+              <button type="submit" disabled={isUploading} className="w-full bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 transition-all">
+                {isUploading ? 'Guardando...' : 'Confirmar Paseo'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* CONTENIDO PRINCIPAL POR TABS */}
+        {activeTab === 'schedule' ? (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+              <div className="bg-orange-500 p-4 text-white">
+                <h2 className="font-bold flex items-center gap-2"><CalendarDays size={20} /> Lunes a Viernes</h2>
+              </div>
+              <div>{scheduleData.weekdays.map((item, idx) => <ScheduleRow key={idx} item={item} />)}</div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+              <div className="bg-slate-800 p-4 text-white">
+                <h2 className="font-bold flex items-center gap-2"><CalendarDays size={20} /> Sábados</h2>
+              </div>
+              <div>{scheduleData.saturday.map((item, idx) => <ScheduleRow key={idx} item={item} />)}</div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+              <div className="bg-purple-600 p-4 text-white">
+                <h2 className="font-bold flex items-center gap-2"><CalendarDays size={20} /> Domingos</h2>
+              </div>
+              <div>{scheduleData.sunday.map((item, idx) => <ScheduleRow key={idx} item={item} />)}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            {walks.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-300">
+                <Dog size={48} className="text-slate-200 mx-auto mb-2" />
+                <p className="text-slate-400">Sin paseos registrados aún.</p>
+              </div>
+            ) : (
+              walks.map((walk) => (
+                <article key={walk.id} className="bg-white rounded-[2rem] overflow-hidden shadow-md border border-slate-100">
+                  <div className="relative h-72">
+                    <img src={walk.image} alt="Paseo" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                      <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/20">
+                        <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">{walk.dateDisplay}</p>
+                        <div className="flex items-center gap-1 text-slate-800">
+                          <Clock size={14} className="text-orange-500" />
+                          <span className="text-lg font-black">{walk.timeDisplay}</span>
+                        </div>
+                      </div>
+                      <button onClick={() => deleteWalk(walk.id)} className="bg-red-500 text-white p-3 rounded-xl shadow-lg active:scale-90">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <p className="text-slate-700 font-medium italic">"{walk.note}"</p>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Navegación Inferior */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 px-2 py-2 rounded-3xl shadow-2xl flex gap-2 z-30">
+        <button 
+          onClick={() => setActiveTab('schedule')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all ${activeTab === 'schedule' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'text-slate-500 hover:bg-slate-100'}`}
+        >
+          <Calendar size={20} />
+          <span className="font-bold text-sm">Horarios</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('history')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all ${activeTab === 'history' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'text-slate-500 hover:bg-slate-100'}`}
+        >
+          <List size={20} />
+          <span className="font-bold text-sm">Historial</span>
+        </button>
+      </nav>
     </div>
+  );
+};
 
-    <!-- NAV -->
-    <nav class="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/5 bg-[#0f0518]/90 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-            <div class="flex items-center gap-5 group cursor-pointer">
-                <img src="https://gcp-na-images.contentstack.com/v3/assets/blt339516d00dd80f86/blt07b6231a0224df6f/686da1846414b29800a13955/Liverpool_opengraph.png?branch=prod" 
-                     alt="Liverpool" class="h-10 w-auto rounded-lg opacity-90 group-hover:opacity-100 transition-opacity">
-                <div class="h-8 w-px bg-white/10"></div>
-                <span class="font-display font-bold text-lg tracking-tight text-white group-hover:text-primary transition-colors uppercase">
-                    Tendencias / Merchandising
-                </span>
-            </div>
-            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-                <a href="#contexto" class="hover:text-primary transition-colors">Estrategia</a>
-                <a href="#tendencias" class="hover:text-primary transition-colors">Perfiles</a>
-                <a href="#arquitectura" class="hover:text-primary transition-colors">Proceso</a>
-                <a href="#retos" class="hover:text-primary transition-colors">Desafíos</a>
-                <a href="#demo" class="hover:text-primary transition-colors">Lab</a>
-                <a href="#resultados" class="px-5 py-2 rounded-full border border-primary/30 bg-primary/10 hover:bg-primary hover:text-white transition-all text-primary font-semibold">Resultados</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="relative pt-36 pb-20 px-6 max-w-7xl mx-auto min-h-[90vh] flex flex-col justify-center">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-            <div class="reveal">
-                
-                <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-6 hover:bg-primary/20 transition-colors cursor-default shadow-[0_0_15px_rgba(225,0,152,0.3)]">
-                    <div class="flex items-center gap-1">
-                        <span class="text-xl animate-dance">🏺</span>
-                        <span class="text-xl animate-dance" style="animation-delay: 0.3s">✨</span>
-                    </div>
-                    <span>Temporada FW25</span>
-                </div>
-
-                <h1 class="font-display text-5xl lg:text-7xl font-bold leading-tight mb-6 text-white">
-                    Clasificador <br/>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-secondary">Automatizado</span>
-                </h1>
-                <p class="text-slate-300 text-lg leading-relaxed max-w-lg mb-8">
-                    Automatización del proceso de asignación de tendencias de Hogar, unificando criterios y eliminando la subjetividad manual.
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a href="#demo" class="px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
-                        Ir al Laboratorio
-                    </a>
-                </div>
-            </div>
-
-            <div class="reveal delay-100 relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 opacity-20 blur-xl rounded-2xl group-hover:opacity-30 transition-opacity"></div>
-                <div class="glass-panel rounded-2xl p-8 relative animate-float border border-white/10 space-y-6">
-                    <div class="border-l-4 border-primary pl-4">
-                        <h3 class="text-white font-bold text-lg mb-2">📜 Contexto</h3>
-                        <p class="text-slate-300 text-sm leading-relaxed">
-                            <!-- CAMBIO 1: Tendencias en lugar de direcciones -->
-                            Cada 6 meses, el equipo de investigación pronostica las tendencias del mercado usando reportes futuristas. Para la temporada <strong>FW25</strong>, las tendencias definidas fueron <strong>Ancestral</strong> y <strong>Esencial para la dirección de Hogar</strong> .
-                        </p>
-                    </div>
-                    <div class="border-l-4 border-purple-500 pl-4">
-                        <h3 class="text-white font-bold text-lg mb-2">⚠️ El Problema</h3>
-                        <p class="text-slate-300 text-sm leading-relaxed">
-                            La clasificación de miles de productos de competencia era <strong>manual, subjetiva y lenta</strong>. Las discrepancias en nombres de materiales y colores hacían complicado un análisis comparativo ágil.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CONTEXTO ESTRATÉGICO -->
-    <section id="contexto" class="py-20 px-6">
-        <div class="max-w-4xl mx-auto">
-            <h2 class="text-3xl md:text-4xl font-display font-bold mb-12 text-center reveal">Estrategia del Proyecto</h2>
-            
-            <div class="glass-panel p-10 rounded-2xl reveal hover:bg-primary/5 transition-colors">
-                <div class="flex items-center gap-4 mb-6 justify-center md:justify-start">
-                    <span class="p-3 rounded-lg bg-primary/20 text-primary text-2xl">🎯</span>
-                    <h3 class="text-2xl font-bold">Objetivo Principal</h3>
-                </div>
-                <p class="text-slate-300 text-lg leading-relaxed border-l-4 border-primary/50 pl-6">
-                    <!-- CAMBIO 2: Python y Modelo entrenado -->
-                    Automatizar la asignación de tendencias y unificar atributos mediante <strong>Inteligencia Artificial</strong>, garantizando precisión y consistencia en la clasificación.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- CONTEXTO TENDENCIAS -->
-    <section id="tendencias" class="py-20 px-6">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl font-display font-bold mb-12 text-center reveal">Contexto de Tendencias FW25</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Ancestral -->
-                <div onclick="openModal('ancestral')" class="glass-panel p-8 rounded-2xl border-t-4 border-t-primary reveal hover:scale-[1.02] transition-transform duration-300 cursor-pointer group relative overflow-hidden">
-                    <div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="flex items-center justify-between mb-6 relative">
-                        <div class="flex items-center gap-4"><div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-3xl">🏺</div><h3 class="text-2xl font-bold text-primary">Ancestral</h3></div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 border border-slate-700 px-3 py-1 rounded-full group-hover:border-primary group-hover:text-primary transition-colors">Ver Galería</span>
-                    </div>
-                    <div class="space-y-4 text-slate-300 relative">
-                        <p>Busca la conexión con la naturaleza y raices <strong>mediante materiales y siluetas artesanales.</strong> Fomenta un consumo responsable que honra la tradición y la sostenibilidad.</p>
-                        <p class="text-sm text-primary font-bold mt-4">Da click para ver galería</p>
-                    </div>
-                </div>
-                <!-- Esencial -->
-                <div onclick="openModal('esencial')" class="glass-panel p-8 rounded-2xl border-t-4 border-t-secondary reveal delay-100 hover:scale-[1.02] transition-transform duration-300 cursor-pointer group relative overflow-hidden">
-                    <div class="absolute inset-0 bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="flex items-center justify-between mb-6 relative">
-                        <div class="flex items-center gap-4"><div class="w-14 h-14 rounded-full bg-secondary/20 flex items-center justify-center text-3xl">✨</div><h3 class="text-2xl font-bold text-secondary">Esencial</h3></div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 border border-slate-700 px-3 py-1 rounded-full group-hover:border-secondary group-hover:text-secondary transition-colors">Ver Galería</span>
-                    </div>
-                    <div class="space-y-4 text-slate-300 relative">
-                        <p>Promueve el consumo consiente y el bienestar a través de diseños <strong>funcionales y minimalistas.</strong> Formas simples, proporciones expresivas y contrastes que aportan equilibrio y calma.</p>
-                        <p class="text-sm text-secondary font-bold mt-4">Da click para ver galería</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ARQUITECTURA ANIMADA -->
-    <section id="arquitectura" class="py-20 px-6 bg-black/20 border-y border-white/5 overflow-hidden">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl font-display font-bold mb-16 text-center reveal">Flujo de Procesamiento</h2>
-            <div class="relative">
-                <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-white/5 -translate-y-1/2 z-0"></div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10" id="pipeline-container">
-                    
-                    <!-- Step 1: Extracción de datos (Antes Scraping) -->
-                    <div id="step-1" class="glass-panel p-6 rounded-2xl relative group reveal transition-all duration-500 border-l-4 border-l-transparent">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">01</div>
-                        <div class="step-icon w-12 h-12 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl mb-4">🕸️</div>
-                        <!-- CAMBIO 3: Extracción de datos -->
-                        <h3 class="text-lg font-bold mb-1">Extracción de datos</h3>
-                        <p class="text-slate-400 text-xs mb-3">Extracción de atributos.</p>
-                        <div class="step-visual bg-slate-900/90 p-3 rounded-lg font-mono text-[10px] leading-relaxed border border-white/10 h-24 flex flex-col justify-center shadow-inner relative overflow-hidden">
-                            <p class="text-slate-500 italic mb-1 text-[8px]">// Extracted Data</p>
-                            <div class="space-y-0.5 text-purple-300">
-                                <p>{</p>
-                                <p class="pl-2"><span class="text-white">"color":</span> <span class="text-green-400">"terracota"</span>,</p>
-                                <p class="pl-2"><span class="text-white">"material":</span> <span class="text-green-400">"filo envejecido"</span>,</p>
-                                <p class="pl-2"><span class="text-white">"silueta":</span> <span class="text-green-400">"rugosa"</span></p>
-                                <p>}</p>
-                            </div>
-                        </div>
-                        <div class="step-status text-[10px] font-mono uppercase tracking-wider text-slate-500 transition-opacity duration-300 mt-2">En espera...</div>
-                        <div class="absolute bottom-0 left-0 h-1 bg-purple-500 progress-bar"></div>
-                    </div>
-
-                    <!-- Step 2: Normalización -->
-                    <div id="step-2" class="glass-panel p-6 rounded-2xl relative group reveal delay-100 transition-all duration-500 border-l-4 border-l-transparent">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">02</div>
-                        <div class="step-icon w-12 h-12 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl mb-4">🌳</div>
-                        <h3 class="text-lg font-bold mb-1">Normalización</h3>
-                        <!-- CAMBIO 4: Listado de atributos -->
-                        <p class="text-slate-400 text-xs mb-3">Listado de atributos.</p>
-                        <div class="step-visual h-20 flex flex-col justify-center gap-2 text-[10px]">
-                            <div class="flex justify-between items-center bg-white/5 p-1 rounded px-2"><span class="text-slate-400">"Envejecido"</span><span class="text-blue-400 animate-pulse">→</span><span class="text-primary font-bold">Ancestral</span></div>
-                            <div class="flex justify-between items-center bg-white/5 p-1 rounded px-2"><span class="text-slate-400">"Rojo Mate"</span><span class="text-blue-400 animate-pulse">→</span><span class="text-secondary font-bold">Esencial</span></div>
-                        </div>
-                        <div class="step-status text-[10px] font-mono uppercase tracking-wider text-slate-500 transition-opacity duration-300 mt-2">En espera...</div>
-                        <div class="absolute bottom-0 left-0 h-1 bg-blue-500 progress-bar"></div>
-                    </div>
-
-                    <!-- Step 3: IA -->
-                    <div id="step-3" class="glass-panel p-6 rounded-2xl relative group reveal delay-200 transition-all duration-500 border-l-4 border-l-transparent">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">03</div>
-                        <div class="step-icon w-12 h-12 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-xl mb-4">🧠</div>
-                        <h3 class="text-lg font-bold mb-1">Clasificación IA</h3>
-                        <p class="text-slate-400 text-xs mb-3">Análisis visual.</p>
-                        <div class="step-visual relative h-20 rounded overflow-hidden bg-slate-800 border border-white/10">
-                            <img src="https://static.zarahome.net/assets/public/c119/dce4/d8924c8ca21c/7649652695c9/45270208982-a7/45270208982-a7.jpg?ts=1764595374258&f=auto&w=1082" class="w-full h-full object-cover opacity-60">
-                            <div class="absolute inset-0 w-full h-1 bg-primary shadow-[0_0_10px_#e10098] animate-scan"></div>
-                            <div class="absolute bottom-1 right-1 bg-primary text-white text-[8px] px-1 rounded">ANCESTRAL</div>
-                        </div>
-                        <div class="step-status text-[10px] font-mono uppercase tracking-wider text-slate-500 transition-opacity duration-300 mt-2">En espera...</div>
-                        <div class="absolute bottom-0 left-0 h-1 bg-primary progress-bar"></div>
-                    </div>
-
-                    <!-- Step 4: Resultados -->
-                    <div id="step-4" class="glass-panel p-6 rounded-2xl relative group reveal delay-300 transition-all duration-500 border-l-4 border-l-transparent">
-                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-bold text-white/5">04</div>
-                        <div class="step-icon w-12 h-12 rounded-lg bg-green-500/20 text-green-400 flex items-center justify-center text-xl mb-4">✅</div>
-                        <h3 class="text-lg font-bold mb-1">Resultados</h3>
-                        <p class="text-slate-400 text-xs mb-3">Validación con Investigación.</p>
-                        <div class="step-visual h-20 flex items-center justify-center">
-                            <div class="w-12 h-12 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 text-2xl animate-bounce shadow-[0_0_20px_rgba(34,197,94,0.4)]">✓</div>
-                        </div>
-                        <div class="step-status text-[10px] font-mono uppercase tracking-wider text-slate-500 transition-opacity duration-300 mt-2">En espera...</div>
-                        <div class="absolute bottom-0 left-0 h-1 bg-green-500 progress-bar"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- RETOS (MOVIDO AQUÍ) -->
-    <section id="retos" class="py-20 px-6">
-        <div class="max-w-4xl mx-auto">
-            <div class="glass-panel p-8 rounded-2xl reveal hover:bg-white/5 transition-colors border-l-4 border-orange-500">
-                <div class="flex items-center gap-4 mb-8">
-                    <span class="p-3 rounded-lg bg-orange-500/20 text-orange-400 text-2xl">🚧</span>
-                    <div>
-                        <h3 class="text-2xl font-bold">Retos y Desafíos Técnicos</h3>
-                        <p class="text-slate-400 text-sm">Obstáculos superados durante la implementación</p>
-                    </div>
-                </div>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <h4 class="font-bold text-white border-b border-white/10 pb-2">Datos</h4>
-                        <div class="bg-white/5 p-4 rounded-lg">
-                            <!-- CAMBIO 5: Diferencia de palabras -->
-                            <strong class="text-orange-400 block mb-1">Diferencia de palabras</strong>
-                            <p class="text-slate-400 text-sm">Inconsistencia en nombres de materiales y colores entre competidores (ej. "Rojo" vs "Carmín").</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <h4 class="font-bold text-white border-b border-white/10 pb-2">Información</h4>
-                        <div class="bg-white/5 p-4 rounded-lg">
-                            <strong class="text-orange-400 block mb-1">Datos Incompletos</strong>
-                            <p class="text-slate-400 text-sm">Productos con descripciones vacías que requieren un análisis puramente visual por parte de la IA.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- DEMO & LAB -->
-    <section id="demo" class="py-20 px-6 bg-black/20">
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-12 reveal">
-                <h2 class="text-3xl md:text-4xl font-display font-bold mb-4">Laboratorio de Tendencias</h2>
-                <p class="text-slate-400">Prueba el diccionario interactivo o analiza imágenes</p>
-                <p class="text-slate-400 mt-2">Prueba con JARRONES</p>
-            </div>
-            <div class="flex justify-center gap-4 mb-10 reveal">
-                <button onclick="switchTab('lab')" id="btn-lab" class="px-6 py-2 rounded-full bg-white text-slate-900 font-bold shadow-lg transition-all">Simulador de Reglas</button>
-                <button onclick="switchTab('visual')" id="btn-visual" class="px-6 py-2 rounded-full bg-slate-800 text-slate-400 font-bold border border-white/10 hover:bg-slate-700 transition-all">Demo Visual</button>
-            </div>
-
-            <!-- LAB -->
-            <div id="tab-lab" class="glass-panel p-6 md:p-10 rounded-2xl reveal border-t-4 border-t-primary">
-                <div class="grid md:grid-cols-2 gap-10 items-center">
-                    <div>
-                        <h3 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="text-primary">🛠️</span> Configura el Producto</h3>
-                        <div class="space-y-4">
-                            <div><label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Color Principal</label>
-                                <select id="sel-color" class="w-full bg-slate-900 border border-white/10 rounded-lg p-3 text-white"><option value="">-- Seleccionar --</option><option value="Terracota">Terracota</option><option value="Rosa">Rosa</option><option value="Verde Salvia">Verde Salvia</option><option value="Amarillo Pastel">Amarillo Pastel</option><option value="Ámbar">Ámbar</option><option value="Azul Aqua">Azul Aqua</option><option value="Borgoña">Borgoña</option><option value="Naranja">Naranja</option></select>
-                            </div>
-                            <div><label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Material</label>
-                                <select id="sel-mat" class="w-full bg-slate-900 border border-white/10 rounded-lg p-3 text-white"><option value="">-- Seleccionar --</option><option value="Desgastada">Cerámica Desgastada</option><option value="Cerámica Brillante">Cerámica Brillante</option><option value="Gres">Gres / Mate</option><option value="Vidrio Tintado">Vidrio Tintado</option><option value="Vidrio Milked">Vidrio Milked</option></select>
-                            </div>
-                            <div><label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Silueta</label>
-                                <select id="sel-sil" class="w-full bg-slate-900 border border-white/10 rounded-lg p-3 text-white"><option value="">-- Seleccionar --</option><option value="Irregular">Irregular / Orgánica</option><option value="Abombadas">Abombada</option><option value="Trenzados">Trenzados</option><option value="Burbuja">Burbuja</option></select>
-                            </div>
-                            <button onclick="calculateTrend()" class="w-full py-3 mt-4 bg-primary hover:bg-pink-600 rounded-lg font-bold text-white shadow-lg transition-all">Calcular Tendencia</button>
-                        </div>
-                    </div>
-                    <div class="h-full bg-slate-900/50 rounded-xl p-8 border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                        <div id="lab-placeholder" class="text-slate-500"><div class="text-4xl mb-4 opacity-30">⚙️</div><p>Configura los atributos y presiona calcular.</p></div>
-                        <div id="lab-result" class="hidden relative z-10"><div id="lab-icon" class="text-5xl mb-4 animate-bounce"></div><h4 id="lab-title" class="text-3xl font-display font-bold mb-2"></h4><p id="lab-desc" class="text-slate-300 text-sm mb-4"></p><div class="inline-block px-3 py-1 rounded bg-white/10 text-xs font-mono text-slate-400">Regla: Diccionario Maestro</div></div>
-                        <div id="lab-glow" class="absolute inset-0 opacity-0 transition-opacity duration-500"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VISUAL -->
-            <div id="tab-visual" class="hidden">
-                <div class="grid md:grid-cols-3 gap-6 items-center">
-                    <!-- Left -->
-                    <div class="glass-panel p-2 rounded-2xl group cursor-pointer hover:border-primary/50 transition-colors" onclick="showVisualResult('ancestral')">
-                        <div class="relative overflow-hidden rounded-xl aspect-[3/4]"><img src="https://static.zara.net/assets/public/7042/441a/763543ffaf3b/34f648933d48/41397046121-e1/41397046121-e1.jpg?ts=1756131977960&w=1066" class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"><div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="px-4 py-2 bg-white/10 backdrop-blur rounded-full text-xs font-bold uppercase">Analizar Imagen</span></div></div>
-                    </div>
-                    <!-- Center (Result) -->
-                    <div class="glass-panel rounded-2xl p-6 flex items-center justify-center text-center h-full"><div id="visual-result-content"><p class="text-slate-500 text-sm">Selecciona una imagen para ver el análisis de visión.</p></div></div>
-                    <!-- Right -->
-                    <div class="glass-panel p-2 rounded-2xl group cursor-pointer hover:border-secondary/50 transition-colors" onclick="showVisualResult('esencial')">
-                        <div class="relative overflow-hidden rounded-xl aspect-[3/4]"><img src="https://static.zara.net/assets/public/6928/ecfe/4d204fcead53/8517f94c45ab/42300046600-e1/42300046600-e1.jpg?ts=1751376947675&w=1066" class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"><div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="px-4 py-2 bg-white/10 backdrop-blur rounded-full text-xs font-bold uppercase">Analizar Imagen</span></div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- RESULTADOS IMPACTANTES -->
-    <section id="resultados" class="py-20 px-6 bg-gradient-to-t from-slate-900 via-[#0f0518] to-transparent">
-        <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-display font-bold mb-12 text-center reveal">Resultados de Impacto</h2>
-            
-            <div class="grid md:grid-cols-3 gap-6 items-stretch">
-                <!-- Tarjeta Tiempo -->
-                <div class="glass-panel p-8 rounded-2xl reveal relative overflow-hidden flex flex-col justify-center h-full">
-                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-white"><span class="text-2xl">⏱️</span> Velocidad</h3>
-                    <div class="mb-4">
-                        <div class="flex justify-between text-xs mb-1 text-slate-400"><span>Antes (Manual)</span><span>~1 Mes</span></div>
-                        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/5">
-                            <div class="bg-purple-800 h-full w-full"></div> 
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs mb-1 text-white"><span>Ahora (Automático)</span><span class="text-secondary font-bold">3-4 Días Max</span></div>
-                        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden relative border border-white/5">
-                            <div class="bg-secondary h-full rounded-full absolute top-0 left-0 animate-grow shadow-[0_0_15px_#00d2e6]" style="--target-width: 15%; width: 0%;"></div>
-                        </div>
-                        <p class="text-xs text-secondary mt-2 text-right font-bold animate-pulse">~90% más rápido</p>
-                    </div>
-                </div>
-
-                <!-- Tarjeta Errores -->
-                <div class="glass-panel p-8 rounded-2xl reveal delay-100 flex flex-col justify-center items-center text-center relative overflow-hidden h-full">
-                    <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-50"></div>
-                    <div class="text-5xl font-display font-bold text-green-400 mb-2 animate-bounce">↓ 90%</div>
-                    <h3 class="text-lg font-bold text-white mb-1">Errores Manuales</h3>
-                    <p class="text-slate-400 text-xs">Reducción drástica en catalogación.</p>
-                </div>
-
-                <!-- Tarjeta Estrategia -->
-                <div class="glass-panel p-8 rounded-2xl reveal delay-200 flex flex-col justify-center items-center text-center h-full relative overflow-hidden">
-                    <div class="text-5xl mb-4">👁️</div>
-                    <h3 class="text-lg font-bold text-white mb-2">Visión de Mercado</h3>
-                    <p class="text-slate-300 text-xs leading-snug">
-                        Crucial para detectar <strong>apuestas comerciales</strong> de la competencia y anticipar la introducción de productos de tendencia.
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-20 pt-8 border-t border-white/5 text-center text-slate-500 text-sm reveal delay-200 font-mono">
-                Presentación de Omar Gael Ortiz Gonzalez | Tendencias Merchandasing 2025
-            </div>
-        </div>
-    </section>
-
-    <!-- MODAL OVERLAY -->
-    <div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
-        <div class="modal-content glass-panel p-0 rounded-2xl border border-white/10 bg-[#0f0518]" onclick="event.stopPropagation()">
-            <div class="sticky top-0 z-10 flex justify-between items-center p-6 border-b border-white/5 bg-[#0f0518]/90 backdrop-blur">
-                <h3 id="modal-title" class="text-3xl font-display font-bold text-white"></h3>
-                <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-colors">✕</button>
-            </div>
-            <div class="p-8 overflow-y-auto max-h-[80vh]">
-                <div class="mb-10"><h4 class="flex items-center gap-3 text-xl font-bold text-white mb-6 pb-2 border-b border-white/5"><span class="text-2xl">🍽️</span> Nuestra Casa <span class="text-xs font-normal text-slate-500 ml-auto uppercase">Hardline</span></h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="modal-grid-1"></div></div>
-                <div><h4 class="flex items-center gap-3 text-xl font-bold text-white mb-6 pb-2 border-b border-white/5"><span class="text-2xl">🏺</span> Decoración <span class="text-xs font-normal text-slate-500 ml-auto uppercase"></span></h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="modal-grid-2"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // SOLUCIÓN AL PROBLEMA DE SCROLL:
-        // 1. Deshabilitar la restauración automática del scroll del navegador
-        if (history.scrollRestoration) {
-            history.scrollRestoration = 'manual';
-        }
-        // 2. Forzar el scroll arriba inmediatamente
-        window.scrollTo(0, 0);
-
-        // Intro cleanup script
-        // 3. Bloquear el scroll del body mientras la intro está activa para evitar bajar accidentalmente
-        document.body.style.overflowY = 'hidden';
-
-        setTimeout(() => {
-            const intro = document.getElementById('intro-overlay');
-            if(intro) {
-                intro.style.display = 'none';
-                // 4. Reactivar scroll y asegurar posición arriba al terminar intro
-                document.body.style.overflowY = 'auto';
-                window.scrollTo(0, 0);
-            }
-        }, 4500); 
-
-        function reveal() { var reveals = document.querySelectorAll(".reveal"); for (var i = 0; i < reveals.length; i++) { if (reveals[i].getBoundingClientRect().top < window.innerHeight - 100) reveals[i].classList.add("active"); } }
-        window.addEventListener("scroll", reveal); reveal();
-
-        function switchTab(tab) {
-            const labDiv = document.getElementById('tab-lab'); const visDiv = document.getElementById('tab-visual');
-            const btnLab = document.getElementById('btn-lab'); const btnVis = document.getElementById('btn-visual');
-            if(tab === 'lab') {
-                labDiv.classList.remove('hidden'); visDiv.classList.add('hidden');
-                btnLab.className = "px-6 py-2 rounded-full bg-white text-slate-900 font-bold shadow-lg transition-all";
-                btnVis.className = "px-6 py-2 rounded-full bg-slate-800 text-slate-400 font-bold border border-white/10 hover:bg-slate-700 transition-all";
-            } else {
-                labDiv.classList.add('hidden'); visDiv.classList.remove('hidden');
-                btnVis.className = "px-6 py-2 rounded-full bg-white text-slate-900 font-bold shadow-lg transition-all";
-                btnLab.className = "px-6 py-2 rounded-full bg-slate-800 text-slate-400 font-bold border border-white/10 hover:bg-slate-700 transition-all";
-            }
-        }
-
-        const DICTIONARY = {
-            ancestral: { colors: ["Terracota", "Verde Salvia", "Ámbar", "Borgoña"], mats: ["Desgastada", "Gres"], sils: ["Irregular", "Trenzados"] },
-            esencial: { colors: ["Rosa", "Amarillo Pastel", "Azul Aqua", "Naranja"], mats: ["Cerámica Brillante", "Vidrio Tintado", "Vidrio Milked"], sils: ["Abombadas", "Burbuja"] }
-        };
-        function calculateTrend() {
-            const color = document.getElementById('sel-color').value; const mat = document.getElementById('sel-mat').value; const sil = document.getElementById('sel-sil').value;
-            if (!color && !mat && !sil) { alert("Por favor, selecciona al menos un atributo."); return; }
-            const ph = document.getElementById('lab-placeholder'); const res = document.getElementById('lab-result'); const glow = document.getElementById('lab-glow');
-            ph.innerHTML = '<div class="animate-spin text-4xl mb-2">⏳</div><p>Consultando diccionario...</p>'; res.classList.add('hidden'); glow.className = "absolute inset-0 opacity-0";
-            setTimeout(() => {
-                let sAnc = 0, sEse = 0;
-                if (DICTIONARY.ancestral.colors.includes(color)) sAnc++; if (DICTIONARY.ancestral.mats.includes(mat)) sAnc++; if (DICTIONARY.ancestral.sils.includes(sil)) sAnc++;
-                if (DICTIONARY.esencial.colors.includes(color)) sEse++; if (DICTIONARY.esencial.mats.includes(mat)) sEse++; if (DICTIONARY.esencial.sils.includes(sil)) sEse++;
-                ph.classList.add('hidden'); res.classList.remove('hidden');
-                const t = document.getElementById('lab-title'); const d = document.getElementById('lab-desc'); const i = document.getElementById('lab-icon');
-                if (sAnc > sEse) { t.textContent = "ANCESTRAL"; t.className = "text-3xl font-display font-bold mb-2 text-primary"; d.textContent = "Predominancia de atributos orgánicos y cálidos."; i.textContent = "🏺"; glow.className = "absolute inset-0 bg-primary/20 opacity-100 transition-opacity duration-500"; }
-                else if (sEse > sAnc) { t.textContent = "ESENCIAL"; t.className = "text-3xl font-display font-bold mb-2 text-secondary"; d.textContent = "Predominancia de atributos brillantes y pastel."; i.textContent = "✨"; glow.className = "absolute inset-0 bg-secondary/20 opacity-100 transition-opacity duration-500"; }
-                else { t.textContent = "NEUTRO"; t.className = "text-3xl font-display font-bold mb-2 text-yellow-400"; d.textContent = "Empate. Se requiere validación visual."; i.textContent = "⚖️"; glow.className = "absolute inset-0 bg-yellow-500/10 opacity-100 transition-opacity duration-500"; }
-            }, 600);
-        }
-
-        function showVisualResult(type) {
-            const c = document.getElementById('visual-result-content');
-            if(type === 'ancestral') {
-                c.innerHTML = `<div class="opacity-0 translate-y-2 fill-mode-forwards" style="animation: reveal 0.6s forwards"><div class="text-4xl mb-2">🏺</div><h4 class="text-xl font-bold text-primary mb-1">ANCESTRAL</h4><p class="text-xs text-slate-300">Confianza Visual: 92%</p><div class="mt-2 flex gap-1 justify-center"><span class="px-2 py-1 bg-primary/20 text-white text-[10px] rounded">Mate</span><span class="px-2 py-1 bg-primary/20 text-white text-[10px] rounded">Irregular</span></div></div>`;
-            } else {
-                c.innerHTML = `<div class="opacity-0 translate-y-2 fill-mode-forwards" style="animation: reveal 0.6s forwards"><div class="text-4xl mb-2">✨</div><h4 class="text-xl font-bold text-secondary mb-1">ESENCIAL</h4><p class="text-xs text-slate-300">Confianza Visual: 89%</p><div class="mt-2 flex gap-1 justify-center"><span class="px-2 py-1 bg-secondary/20 text-white text-[10px] rounded">Brillo</span><span class="px-2 py-1 bg-secondary/20 text-white text-[10px] rounded">Pastel</span></div></div>`;
-            }
-        }
-
-        function startPipelineAnimation() {
-            const steps = [1, 2, 3, 4]; let currentStep = 0;
-            setInterval(() => {
-                steps.forEach(id => { const el = document.getElementById(`step-${id}`); if(el) { el.classList.remove('step-active'); el.querySelector('.step-status').textContent = 'En espera...'; el.querySelector('.step-status').classList.remove('text-primary'); } });
-                const activeId = steps[currentStep]; const activeEl = document.getElementById(`step-${activeId}`);
-                if(activeEl) { activeEl.classList.add('step-active'); const st = activeEl.querySelector('.step-status'); st.textContent = '● Procesando'; st.classList.add('text-primary'); }
-                currentStep = (currentStep + 1) % steps.length;
-            }, 5000);
-        }
-        document.addEventListener('DOMContentLoaded', startPipelineAnimation);
-
-        const DATA = {
-            ancestral: { title: "Detalles Tendencia: Ancestral", colorClass: "text-primary",
-                house: [{img:"https://static.zarahome.net/assets/public/c119/dce4/d8924c8ca21c/7649652695c9/45270208982-a7/45270208982-a7.jpg?ts=1764595374258&f=auto&w=1082",title:"TAZAS"},{img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQuD_YzMQbrLfcTEVSW8kmZmMT2KYcAcKVxZw&s",title:"PLATOS"},{img:"https://www.casacaliza.com.mx/wp-content/uploads/2023/06/AfterlightImage-235-scaled.jpg",title:"VASOS"},{img:"https://image.hm.com/assets/hm/3a/ed/3aedcdbce7c7878a8ea9465c0e774c8eb8d579f3.jpg?imwidth=2160",title:"SERVICIOS"}],
-                decor: [{img:"https://i5.walmartimages.com/asr/6b2ff4de-f7fa-4f8a-babf-15cb2a971be6.5afa053e06ca01ee2efa09cec19baef5.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",title:"ESCULTURAS"},{img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRR7CDFNZ5hyUY7cqAIlm223vwAYg7J4RFAQ&s",title:"JARRONES"},{img:"https://www.talaverasalazar.com/cdn/shop/files/IMG_4153_85256569-b4aa-4188-81fb-8531a8f9308a.jpg?v=1695939915",title:"PORTAVELAS"},{img:"https://d22fxaf9t8d39k.cloudfront.net/d5a8d9d71b09eeb8f5ed81c6f73ecfe9382c7ee35afd28438170add66312891057247.jpg",title:"PORTARRETRATOS / CAJAS"}]
-            },
-            esencial: { title: "Detalles Tendencia: Esencial", colorClass: "text-secondary",
-                house: [{img:"https://image.hm.com/assets/hm/96/c7/96c77f5f387d05a01e12207b42d2a7d7ed6def55.jpg?imwidth=2160",title:"TAZAS"},{img:"https://image.hm.com/assets/hm/cf/8b/cf8b0a1adc6f1951471d49155ae24c6cf50915d5.jpg?imwidth=1536",title:"PLATOS"},{img:"https://static.zara.net/assets/public/4557/7879/faf148d1ae1c/db12684e1cd0/49220401400-e1/49220401400-e1.jpg?ts=1758630016025&w=960",title:"VASOS"},{img:"https://image.hm.com/assets/hm/f5/79/f5797c760ff9988c51b219ec4887158a4aa14daf.jpg?imwidth=2160",title:"SERVICIOS"}],
-                decor: [{img:"https://static.zara.net/assets/public/9cb2/ed30/aedb4d9c98e2/aef3e1eb2fc9/41357043700-e1/41357043700-e1.jpg?ts=1748961980620&w=1066",title:"ESCULTURAS"},{img:"https://image.hm.com/assets/hm/a5/ca/a5caee06cbc279b69047376d4e9d20dc8e1ff23b.jpg?imwidth=2160",title:"JARRONES"},{img:"https://image.hm.com/assets/hm/b6/82/b6822a6f13cb44dcfd032607f368732b13909f67.jpg?imwidth=2160",title:"PORTAVELAS"},{img:"https://static.zara.net/assets/public/6f1e/4eb0/41ac45918475/19e25b93ec1e/44320045302-e1/44320045302-e1.jpg?ts=1750950824253&w=1066",title:"PORTARRETRATOS / CAJAS"}]
-            }
-        };
-
-        function openModal(type) {
-            const d = DATA[type];
-            document.getElementById('modal-title').textContent = d.title;
-            document.getElementById('modal-title').className = `text-3xl font-display font-bold ${d.colorClass}`;
-            document.getElementById('modal-grid-1').innerHTML = d.house.map(i=>`<div class="group relative"><div class="gallery-img-container"><img src="${i.img}" class="gallery-img" alt="${i.title}"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3"><span class="text-xs font-bold text-white">${i.title}</span></div></div></div>`).join('');
-            document.getElementById('modal-grid-2').innerHTML = d.decor.map(i=>`<div class="group relative"><div class="gallery-img-container"><img src="${i.img}" class="gallery-img" alt="${i.title}"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3"><span class="text-xs font-bold text-white">${i.title}</span></div></div></div>`).join('');
-            document.getElementById('modal-overlay').classList.add('open');
-            document.body.style.overflow = 'hidden'; 
-        }
-        function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = 'auto'; }
-    </script>
-</body>
-</html>
+export default App;
