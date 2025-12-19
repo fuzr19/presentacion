@@ -2,178 +2,171 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paseo Canino Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dog Walker Pro - Cloud Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .tab-active { @apply bg-orange-500 text-white shadow-lg shadow-orange-200; }
-        .tab-inactive { @apply text-slate-500 hover:bg-slate-100; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body class="bg-orange-50 text-slate-800 pb-24 min-h-screen">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <!-- Header -->
-    <header class="bg-white border-b border-orange-100 sticky top-0 z-20 p-4 shadow-sm">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-200">
-                    <i data-lucide="dog" class="text-white w-6 h-6"></i>
-                </div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-900">Dog Walker</h1>
-            </div>
-            <button id="toggleFormBtn" class="p-3 rounded-2xl bg-orange-500 text-white shadow-md transition-all active:scale-95">
-                <i data-lucide="plus" id="plusIcon" class="w-5 h-5"></i>
-            </button>
-        </div>
-    </header>
-
-    <main class="max-w-md mx-auto p-4">
+        // Configuración proporcionada por el entorno
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         
-        <!-- Formulario (Oculto por defecto) -->
-        <div id="uploadForm" class="hidden bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-orange-100">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">📸 Registrar Paseo Actual</h2>
-            <form id="dogWalkForm" class="space-y-4">
-                <div class="relative group">
-                    <div id="dropzone" class="w-full h-56 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center transition-all overflow-hidden">
-                        <div id="previewContainer" class="hidden w-full h-full">
-                            <img id="imagePreview" src="" alt="Preview" class="w-full h-full object-cover">
-                        </div>
-                        <div id="uploadPrompt" class="flex flex-col items-center">
-                            <div class="bg-white p-4 rounded-full shadow-sm mb-2">
-                                <i data-lucide="camera" class="text-orange-500 w-8 h-8"></i>
-                            </div>
-                            <p class="text-sm font-medium text-slate-600">Click para tomar/subir foto</p>
-                        </div>
-                    </div>
-                    <input type="file" id="fileInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer" required>
-                </div>
-                <input type="text" id="noteInput" placeholder="¿Algún comentario?" class="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none">
-                <button type="submit" class="w-full bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-200 active:scale-95 transition-all">
-                    Confirmar Paseo
-                </button>
-            </form>
-        </div>
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        <!-- Sección de Horarios -->
-        <div id="scheduleSection" class="space-y-6">
-            <!-- Lunes a Viernes -->
-            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-                <div class="bg-orange-500 p-4 text-white">
-                    <h2 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5"></i> Lunes a Viernes</h2>
-                </div>
-                <div id="weekdaysList"></div>
-            </div>
+        // Variables de estado global
+        let user = null;
+        let walks = [];
 
-            <!-- Sábados -->
-            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-                <div class="bg-slate-800 p-4 text-white">
-                    <h2 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5"></i> Sábados</h2>
-                </div>
-                <div id="saturdayList"></div>
-            </div>
-
-            <!-- Domingos -->
-            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
-                <div class="bg-purple-600 p-4 text-white">
-                    <h2 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5"></i> Domingos</h2>
-                </div>
-                <div id="sundayList"></div>
-            </div>
-        </div>
-
-        <!-- Sección de Historial (Oculta por defecto) -->
-        <div id="historySection" class="hidden space-y-6">
-            <div id="walksHistory" class="space-y-6">
-                <!-- Aquí se cargan los paseos -->
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Navegación Inferior -->
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 px-2 py-2 rounded-3xl shadow-2xl flex gap-2 z-30">
-        <button id="tabSchedule" class="tab-active flex items-center gap-2 px-6 py-3 rounded-2xl transition-all">
-            <i data-lucide="calendar" class="w-5 h-5"></i>
-            <span class="font-bold text-sm">Horarios</span>
-        </button>
-        <button id="tabHistory" class="tab-inactive flex items-center gap-2 px-6 py-3 rounded-2xl transition-all">
-            <i data-lucide="list" class="w-5 h-5"></i>
-            <span class="font-bold text-sm">Historial</span>
-        </button>
-    </nav>
-
-    <script>
-        // --- DATOS DEL HORARIO ---
-        const schedule = {
-            weekdays: [
-                { time: "10:00 AM", person: "Itzel", type: "Paseo" },
-                { time: "03:00 PM", person: "Gael", type: "Paseo" },
-                { time: "09:30 PM", person: "Montse", type: "Paseo" },
-            ],
-            saturday: [
-                { time: "10:00 AM", person: "Itzel", type: "Paseo" },
-                { time: "03:00 PM", person: "Gael", type: "Paseo" },
-                { time: "09:30 PM", person: "Montse", type: "Paseo" },
-            ],
-            sunday: [
-                { time: "09:00 AM", person: "Gael", type: "Paseo" },
-                { time: "09:00 - 11:00 AM", person: "Todos", type: "Entrenamiento" },
-                { time: "02:00 - 04:00 PM", person: "Itzel", type: "Paseo" },
-                { time: "08:00 PM", person: "Montse", type: "Paseo" },
-            ]
+        // --- INICIO DE AUTH ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Error de autenticación:", error);
+            }
         };
 
-        // --- LÓGICA DE LA APP ---
-        let walks = JSON.parse(localStorage.getItem('dog_walks') || '[]');
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            if (user) {
+                setupRealtimeSync();
+            }
+        });
 
-        function init() {
-            lucide.createIcons();
-            renderSchedules();
-            renderHistory();
-            setupEventListeners();
+        initAuth();
+
+        // --- SINCRONIZACIÓN EN TIEMPO REAL ---
+        function setupRealtimeSync() {
+            if (!user) return;
+            // IMPORTANTE: Ruta de Firestore siguiendo la Regla 1
+            const walksCol = collection(db, 'artifacts', appId, 'public', 'data', 'walks');
+            
+            // Escuchar cambios (esto actualiza la app solita si alguien sube algo en otro cel)
+            onSnapshot(walksCol, (snapshot) => {
+                walks = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                
+                renderHistory();
+            }, (error) => {
+                console.error("Error sincronizando datos:", error);
+            });
         }
 
-        function renderSchedules() {
-            const renderList = (data, containerId) => {
-                const container = document.getElementById(containerId);
-                container.innerHTML = data.map(item => `
-                    <div class="flex items-center justify-between p-4 border-b border-orange-50 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg ${item.type === 'Entrenamiento' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}">
-                                <i data-lucide="${item.type === 'Entrenamiento' ? 'award' : 'clock'}" class="w-4 h-4"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-800">${item.time}</p>
-                                <p class="text-xs text-slate-500 uppercase">${item.type}</p>
-                            </div>
-                        </div>
-                        <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm font-semibold text-orange-600 shadow-sm">${item.person}</span>
-                    </div>
-                `).join('');
-            };
+        // --- COMPRESIÓN DE IMAGEN (Para que el botón de confirmar no se trabe) ---
+        async function compressImage(base64Str) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = base64Str;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
 
-            renderList(schedule.weekdays, 'weekdaysList');
-            renderList(schedule.saturday, 'saturdayList');
-            renderList(schedule.sunday, 'sundayList');
-            lucide.createIcons();
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7)); // Comprimir al 70%
+                };
+            });
         }
 
+        // --- FUNCIONES DE LA UI ---
+        window.saveWalk = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const noteInput = document.getElementById('noteInput');
+            const previewImg = document.getElementById('imagePreview');
+            
+            if (!user) {
+                alert("Espera un momento, estamos conectando con la nube...");
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerText = "Subiendo a la nube...";
+
+                const compressedImg = await compressImage(previewImg.src);
+                const now = new Date();
+                
+                const walksCol = collection(db, 'artifacts', appId, 'public', 'data', 'walks');
+                await addDoc(walksCol, {
+                    dateDisplay: now.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }),
+                    timeDisplay: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                    image: compressedImg,
+                    note: noteInput.value || "¡Paseo completado!",
+                    userId: user.uid,
+                    createdAt: serverTimestamp()
+                });
+
+                // Resetear form
+                document.getElementById('dogWalkForm').reset();
+                document.getElementById('previewContainer').classList.add('hidden');
+                document.getElementById('uploadPrompt').classList.remove('hidden');
+                document.getElementById('uploadForm').classList.add('hidden');
+                document.getElementById('plusIcon').style.transform = 'rotate(0deg)';
+                switchTab('history');
+                
+            } catch (err) {
+                console.error(err);
+                alert("Hubo un error al guardar. Intenta de nuevo.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Confirmar Paseo";
+            }
+        };
+
+        window.deleteWalk = async (id) => {
+            if (!confirm("¿Borrar este registro?")) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'walks', id);
+                await deleteDoc(docRef);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        // --- RENDERIZADO ---
         function renderHistory() {
             const container = document.getElementById('walksHistory');
             if (walks.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-300">
                         <i data-lucide="dog" class="w-12 h-12 text-slate-200 mx-auto mb-2"></i>
-                        <p class="text-slate-400">Sin paseos registrados aún.</p>
+                        <p class="text-slate-400">Sin registros en la nube.</p>
                     </div>
                 `;
             } else {
                 container.innerHTML = walks.map(walk => `
-                    <article class="bg-white rounded-[2rem] overflow-hidden shadow-md border border-slate-100">
+                    <article class="bg-white rounded-[2rem] overflow-hidden shadow-md border border-slate-100 animate-in fade-in slide-in-from-bottom-2">
                         <div class="relative h-72">
                             <img src="${walk.image}" class="w-full h-full object-cover">
                             <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
@@ -184,7 +177,7 @@
                                         <span class="text-lg font-black">${walk.timeDisplay}</span>
                                     </div>
                                 </div>
-                                <button onclick="deleteWalk(${walk.id})" class="bg-red-500 text-white p-3 rounded-xl shadow-lg active:scale-90">
+                                <button onclick="deleteWalk('${walk.id}')" class="bg-red-500 text-white p-3 rounded-xl shadow-lg active:scale-90">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
@@ -198,60 +191,7 @@
             lucide.createIcons();
         }
 
-        function setupEventListeners() {
-            // Cambio de Pestañas
-            document.getElementById('tabSchedule').addEventListener('click', () => switchTab('schedule'));
-            document.getElementById('tabHistory').addEventListener('click', () => switchTab('history'));
-
-            // Mostrar/Ocultar Formulario
-            document.getElementById('toggleFormBtn').addEventListener('click', () => {
-                const form = document.getElementById('uploadForm');
-                const icon = document.getElementById('plusIcon');
-                form.classList.toggle('hidden');
-                icon.style.transform = form.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(45deg)';
-            });
-
-            // Previsualización de Imagen
-            document.getElementById('fileInput').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        document.getElementById('imagePreview').src = event.target.result;
-                        document.getElementById('previewContainer').classList.remove('hidden');
-                        document.getElementById('uploadPrompt').classList.add('hidden');
-                        document.getElementById('dropzone').classList.replace('border-slate-300', 'border-orange-500');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // Guardar Paseo
-            document.getElementById('dogWalkForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const now = new Date();
-                const newWalk = {
-                    id: Date.now(),
-                    dateDisplay: now.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }),
-                    timeDisplay: now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-                    image: document.getElementById('imagePreview').src,
-                    note: document.getElementById('noteInput').value || "¡Paseo completado!"
-                };
-
-                walks.unshift(newWalk);
-                localStorage.setItem('dog_walks', JSON.stringify(walks));
-                
-                // Reset y Switch
-                e.target.reset();
-                document.getElementById('previewContainer').classList.add('hidden');
-                document.getElementById('uploadPrompt').classList.remove('hidden');
-                document.getElementById('uploadForm').classList.add('hidden');
-                document.getElementById('plusIcon').style.transform = 'rotate(0deg)';
-                switchTab('history');
-                renderHistory();
-            });
-        }
-
+        // --- NAVEGACIÓN Y EVENTOS ---
         function switchTab(tab) {
             const schedSection = document.getElementById('scheduleSection');
             const histSection = document.getElementById('historySection');
@@ -271,14 +211,133 @@
             }
         }
 
-        window.deleteWalk = (id) => {
-            walks = walks.filter(w => w.id !== id);
-            localStorage.setItem('dog_walks', JSON.stringify(walks));
-            renderHistory();
-        };
+        window.onload = () => {
+            lucide.createIcons();
+            
+            // Tablas de horario (estáticas)
+            const schedule = {
+                weekdays: [{t:"10:00 AM", p:"Itzel"}, {t:"03:00 PM", p:"Gael"}, {t:"09:30 PM", p:"Montse"}],
+                sat: [{t:"10:00 AM", p:"Itzel"}, {t:"03:00 PM", p:"Gael"}, {t:"09:30 PM", p:"Montse"}],
+                sun: [{t:"09:00 AM", p:"Gael"}, {t:"09-11 AM", p:"Entreno"}, {t:"2-4 PM", p:"Itzel"}, {t:"08:00 PM", p:"Montse"}]
+            };
 
-        // Iniciar app
-        window.onload = init;
+            const fillTable = (data, id) => {
+                document.getElementById(id).innerHTML = data.map(i => `
+                    <div class="flex items-center justify-between p-4 border-b border-orange-50 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+                            <span class="font-bold text-slate-800">${i.t}</span>
+                        </div>
+                        <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-sm font-semibold text-orange-600">${i.p}</span>
+                    </div>
+                `).join('');
+            };
+            fillTable(schedule.weekdays, 'weekdaysList');
+            fillTable(schedule.sat, 'saturdayList');
+            fillTable(schedule.sun, 'sundayList');
+
+            // Eventos UI
+            document.getElementById('tabSchedule').onclick = () => switchTab('schedule');
+            document.getElementById('tabHistory').onclick = () => switchTab('history');
+            document.getElementById('toggleFormBtn').onclick = () => {
+                const form = document.getElementById('uploadForm');
+                form.classList.toggle('hidden');
+                document.getElementById('plusIcon').style.transform = form.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(45deg)';
+            };
+            document.getElementById('fileInput').onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        document.getElementById('imagePreview').src = ev.target.result;
+                        document.getElementById('previewContainer').classList.remove('hidden');
+                        document.getElementById('uploadPrompt').classList.add('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            document.getElementById('dogWalkForm').onsubmit = window.saveWalk;
+            lucide.createIcons();
+        };
     </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .tab-active { @apply bg-orange-500 text-white shadow-lg shadow-orange-200 scale-105; }
+        .tab-inactive { @apply text-slate-500 hover:bg-slate-100; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-orange-50 text-slate-800 pb-24 min-h-screen">
+
+    <header class="bg-white border-b border-orange-100 sticky top-0 z-20 p-4 shadow-sm">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-orange-500 p-2 rounded-xl">
+                    <i data-lucide="dog" class="text-white w-6 h-6"></i>
+                </div>
+                <h1 class="text-xl font-bold text-slate-900">Dog Walker Cloud</h1>
+            </div>
+            <button id="toggleFormBtn" class="p-3 rounded-2xl bg-orange-500 text-white shadow-md active:scale-90 transition-transform">
+                <i data-lucide="plus" id="plusIcon" class="w-5 h-5 transition-transform"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4">
+        
+        <!-- Formulario -->
+        <div id="uploadForm" class="hidden bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-orange-100">
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">📸 Nuevo Paseo</h2>
+            <form id="dogWalkForm" class="space-y-4">
+                <div class="relative group">
+                    <div id="dropzone" class="w-full h-56 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center overflow-hidden">
+                        <div id="previewContainer" class="hidden w-full h-full">
+                            <img id="imagePreview" src="" alt="Preview" class="w-full h-full object-cover">
+                        </div>
+                        <div id="uploadPrompt" class="flex flex-col items-center">
+                            <i data-lucide="camera" class="text-orange-500 w-8 h-8 mb-2"></i>
+                            <p class="text-sm font-medium text-slate-600">Subir foto del paseo</p>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" capture="environment" class="absolute inset-0 opacity-0 cursor-pointer" required>
+                </div>
+                <input type="text" id="noteInput" placeholder="¿Quién lo sacó o algún detalle?" class="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 outline-none">
+                <button type="submit" id="submitBtn" class="w-full bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 disabled:bg-slate-400">
+                    Confirmar Paseo
+                </button>
+            </form>
+        </div>
+
+        <!-- Secciones -->
+        <div id="scheduleSection" class="space-y-6">
+            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-orange-500 p-4 text-white font-bold flex items-center gap-2"><i data-lucide="calendar"></i> Lunes-Viernes</div>
+                <div id="weekdaysList"></div>
+            </div>
+            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-slate-800 p-4 text-white font-bold flex items-center gap-2"><i data-lucide="calendar"></i> Sábados</div>
+                <div id="saturdayList"></div>
+            </div>
+            <div class="bg-white rounded-[2rem] shadow-sm border border-orange-100 overflow-hidden">
+                <div class="bg-purple-600 p-4 text-white font-bold flex items-center gap-2"><i data-lucide="calendar"></i> Domingos</div>
+                <div id="sundayList"></div>
+            </div>
+        </div>
+
+        <div id="historySection" class="hidden space-y-6">
+            <div id="walksHistory" class="space-y-6"></div>
+        </div>
+    </main>
+
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl border border-slate-200 px-2 py-2 rounded-3xl shadow-2xl flex gap-2 z-30">
+        <button id="tabSchedule" class="tab-active flex items-center gap-2 px-6 py-3 rounded-2xl">
+            <i data-lucide="calendar" class="w-5 h-5"></i><span class="font-bold text-sm">Horarios</span>
+        </button>
+        <button id="tabHistory" class="tab-inactive flex items-center gap-2 px-6 py-3 rounded-2xl">
+            <i data-lucide="list" class="w-5 h-5"></i><span class="font-bold text-sm">Historial</span>
+        </button>
+    </nav>
+
 </body>
 </html>
