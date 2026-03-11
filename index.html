@@ -492,51 +492,64 @@
     </div>
 
     <script>
-        // Funciones para navegar
-        function abrirFormulario() {
-            document.getElementById('home-page').classList.add('hidden');
-            document.getElementById('home-page').classList.remove('block');
-            document.getElementById('form-page').classList.remove('hidden');
-            document.getElementById('form-page').classList.add('block');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    function abrirFormulario() {
+        document.getElementById('home-page').classList.add('hidden');
+        document.getElementById('home-page').classList.remove('block');
+        document.getElementById('form-page').classList.remove('hidden');
+        document.getElementById('form-page').classList.add('block');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function volverInicio() {
+        document.getElementById('form-page').classList.add('hidden');
+        document.getElementById('form-page').classList.remove('block');
+        document.getElementById('home-page').classList.remove('hidden');
+        document.getElementById('home-page').classList.add('block');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function submitForm(event) {
+        event.preventDefault(); 
+        
+        const nombre = encodeURIComponent(document.getElementById('nombre').value);
+        const telefono = document.getElementById('telefono').value;
+        const ciudad = encodeURIComponent(document.getElementById('ciudad').value);
+        const estadoPropiedad = document.getElementById('estadoPropiedad').value;
+        const adeudos = document.getElementById('adeudos').value;
+        const tiempo = document.getElementById('tiempo').value;
+        const interes = document.getElementById('interes').value;
+
+        const telefonoLimpio = telefono.replace(/\D/g, '');
+        if (telefonoLimpio.length < 10) {
+            alert('Por favor ingresa un número de 10 dígitos válido.');
+            return;
         }
 
-        function volverInicio() {
-            document.getElementById('form-page').classList.add('hidden');
-            document.getElementById('form-page').classList.remove('block');
-            document.getElementById('home-page').classList.remove('hidden');
-            document.getElementById('home-page').classList.add('block');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        gtag('event', 'conversion', {
+            'send_to': 'AW-17866908864'
+        });
 
-        function submitForm(event) {
-            event.preventDefault(); 
-            
-            const nombre = document.getElementById('nombre').value;
-            const telefono = document.getElementById('telefono').value;
-            const ciudad = document.getElementById('ciudad').value;
-            const estadoPropiedad = document.getElementById('estadoPropiedad').value;
-            const adeudos = document.getElementById('adeudos').value;
-            const tiempo = document.getElementById('tiempo').value;
-            const interes = document.getElementById('interes').value;
+        const miNumeroDeWhatsApp = '525538980316'; 
+        
+        const mensaje = `¡Hola BE FREE! 👋 Te envío mi formulario de evaluación para recuperar mi inversión.%0A%0A*Mis datos:*%0A👤 *Nombre:* ${nombre}%0A📱 *Teléfono:* ${telefonoLimpio}%0A📍 *Ciudad:* ${ciudad}%0A%0A*Situación de la propiedad:*%0A🏠 *Estado:* ${estadoPropiedad}%0A💰 *Adeudos:* ${adeudos}%0A⏳ *Tiempo sin pagar:* ${tiempo}%0A%0A*Nivel de interés:*%0A🔥 ${interes}`;
+        
+        const urlWhatsApp = `https://wa.me/${miNumeroDeWhatsApp}?text=${mensaje}`;
+        
+        document.getElementById('successModal').classList.remove('hidden');
+        setTimeout(() => { window.open(urlWhatsApp, '_blank'); }, 1500); 
+        document.getElementById('contactForm').reset();
+    }
 
-            const miNumeroDeWhatsApp = '525538980316'; 
-            
-            const mensaje = `¡Hola BE FREE! 👋 Te envío mi formulario de evaluación para recuperar mi inversión.%0A%0A*Mis datos:*%0A👤 *Nombre:* ${nombre}%0A📱 *Teléfono:* ${telefono}%0A📍 *Ciudad:* ${ciudad}%0A%0A*Situación de la propiedad:*%0A🏠 *Estado:* ${estadoPropiedad}%0A💰 *Adeudos:* ${adeudos}%0A⏳ *Tiempo sin pagar:* ${tiempo}%0A%0A*Nivel de interés:*%0A🔥 ${interes}`;
-            
-            const urlWhatsApp = `https://wa.me/${miNumeroDeWhatsApp}?text=${mensaje}`;
-            
-            document.getElementById('successModal').classList.remove('hidden');
-            setTimeout(() => { window.open(urlWhatsApp, '_blank'); }, 1500); 
-            document.getElementById('contactForm').reset();
-        }
+    function closeModal() {
+        document.getElementById('successModal').classList.add('hidden');
+    }
+</script>
 
-        function closeModal() {
-            document.getElementById('successModal').classList.add('hidden');
-        }
-    </script>
+
+    
 </body>
 </html>
+
 
 
 
